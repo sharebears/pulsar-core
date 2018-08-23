@@ -6,6 +6,12 @@ from conftest import add_permissions, check_dictionary, check_json_response
 from pulsar import APIException, NewJSONEncoder, _403Exception, cache, db
 from pulsar.forums.models import (ForumLastViewedPost, ForumPost, ForumThread,
                                   ForumThreadSubscription)
+from pulsar.users.models import User
+
+
+def test_user_thread_count(app, client):
+    user = User.from_pk(1)
+    assert user.forum_thread_count == 4
 
 
 def test_thread_from_pk(app, authed_client):

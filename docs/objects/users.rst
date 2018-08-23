@@ -65,6 +65,8 @@ User
     "locked": false,
     "invites": 1,
     "inviter": "<User>",
+    "forum_post_count": 6,
+    "forum_thread_count": 2,
     "api_keys": [
       "<APIKey>",
       "<APIKey>"
@@ -94,6 +96,8 @@ User
 * **locked** - Whether or not the user is locked
 * **invites** - The user's invite count
 * **inviter** - The user's inviter
+* **forum_post_count** - The number of forum posts the user has made
+* **forum_thread_count** - The number of forum threads the user has started
 * **api_keys** - A list of the user's active API keys
 * **basic_permissions** - A list of the user's basic permissions
 * **forum_permissions** - A list of the user's forum permissions

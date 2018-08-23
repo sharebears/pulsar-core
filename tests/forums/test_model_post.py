@@ -3,6 +3,12 @@ import pytest
 from conftest import add_permissions, check_dictionary
 from pulsar import APIException, NewJSONEncoder, cache
 from pulsar.forums.models import ForumPost, ForumPostEditHistory
+from pulsar.users.models import User
+
+
+def test_user_post_count(app, client):
+    user = User.from_pk(1)
+    assert user.forum_post_count == 4
 
 
 def test_post_from_pk_deleted(app, authed_client):
