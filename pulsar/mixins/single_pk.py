@@ -9,7 +9,6 @@ from sqlalchemy.orm.session import make_transient_to_detached
 from sqlalchemy.sql.elements import BinaryExpression
 
 from pulsar import APIException, _403Exception, _404Exception, cache, db
-from pulsar.mixins.serializer import Serializer
 
 MDL = TypeVar('MDL', bound='SinglePKMixin')
 
@@ -29,7 +28,10 @@ class SinglePKMixin(Model):
 
     __cache_key__: Optional[str] = None
     __deletion_attr__: Optional[str] = None
-    __serializer__: Optional[Serializer] = None
+
+    @property
+    def __serializer__(self):
+        raise NotImplementedError
 
     @classmethod
     def from_pk(cls: Type[MDL],
