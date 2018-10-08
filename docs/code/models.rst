@@ -11,6 +11,9 @@ their methods which support caching. Caching is handled by the mixins subclassed
 models. I recommend viewing the mixins page to view vital methods which belong to 
 subclassing models.
 
+``@property``'s are used to add attributes to models which are not part of their SQL 
+schema.
+
 Users
 -----
 

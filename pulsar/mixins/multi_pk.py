@@ -19,15 +19,6 @@ class MultiPKMixin(Model):
     __cache_key_all__: Optional[str] = None
     __deletion_attr__: Optional[str] = None
 
-    __serialize__: tuple = ()
-    __serialize_detailed__: tuple = ()
-    __serialize_very_detailed__: tuple = ()
-    __serialize_nested_include__: tuple = ()
-    __serialize_nested_exclude__: tuple = ()
-
-    __permission_detailed__: Optional[str] = None
-    __permission_very_detailed__: Optional[str] = None
-
     @classmethod
     def from_attrs(cls: Type[MPK], **kwargs: Union[str, int]) -> Optional[MPK]:
         """

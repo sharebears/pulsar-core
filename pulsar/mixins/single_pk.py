@@ -9,70 +9,27 @@ from sqlalchemy.orm.session import make_transient_to_detached
 from sqlalchemy.sql.elements import BinaryExpression
 
 from pulsar import APIException, _403Exception, _404Exception, cache, db
+from pulsar.mixins.serializer import Serializer
 
 MDL = TypeVar('MDL', bound='SinglePKMixin')
 
 
 class SinglePKMixin(Model):
     """
-    This is a custom model mixin for the pulsar project, which adds caching
-    and JSON serialization functionality to the base model. Subclasses are
-    expected to define their serializable attributes, permission restrictions,
-    and cache key template with the following class attributes. They are required
-    if one wants to cache or serialize data for a model. By default, all "serialize"
-    tuples are empty, so only the populated ones need to be defined. This mixin is
-    not designed for models with composite primary keys.
+    This is the primary mixin for most of pulsar's model classes. This adds caching and JSON
+    serialization functionality to the base SQLAlchemy model. Methods belonging to the mixin
+    automatically cache fetched results and attempt to access cached results before querying the
+    database when fetching a model. If caching is desired, methods belonging to this mixin should
+    be used.
 
-    * ``__cache_key__`` (``str``)
-    * ``__serialize__`` (``tuple``)
-    * ``__serialize_self__`` (``tuple``)
-    * ``__serialize_detailed__`` (``tuple``)
-    * ``__serialize_very_detailed__`` (``tuple``)
-    * ``__serialize_nested_include__`` (``tuple``)
-    * ``__serialize_nested_exclude__`` (``tuple``)
-    * ``__permission_detailed__`` (``str``)
-    * ``__permission_very_detailed__`` (``str``)
-
-    When a model is serialized in an API response, the permissions assigned to a user
-    and the permissions listed in the above attributes will determine which properties
-    of the model are returned. Attributes in ``__serialize__`` are viewable to anyone
-    with permission to access the resource, attributes in ``__serialize_self__`` are
-    viewable by anyone who passes the ``belongs_to_user`` function. Attributes in
-    ``__serialize_detailed__`` and ``__serialize_very_detailed__`` are viewable by users
-    with the permissions defined in ``__permission_detailed__`` and
-    ``__permission_very_detailed__``, respectively.
-
-    Other models or values built off from column values can be serialized into JSON by
-    taking advantage of the @property decorator. Property names can be included in the
-    serialization tuples, and their functions can return (multiple) other models.
-
-    Nested model properties will also be serialized if they are the value of a ``dict``
-    or in a ``list``. When nested models are serialized, all attributes listed in
-    ``__serialize_nested_exclude__`` will be excluded, while all attributes in
-    ``__serialize_nested_include__`` will be included. For example, when embedding a user
-    in the forum post JSON response, the nested list of APIKey models can be excluded.
-
-    Due to how models are cached, writing out the logic to obtain from cache and,
-    if the cache call returned nothing, execute a query for every model is tedious
-    and repetitive. Generalized functions to abstract those are included in this class,
-    and are expected to be utilized wherever possible.
-
-    It's not a true mixin in that it's monolithic and inherits from the base class,
-    but let's pretend it is so our type analysis works.
+    Subclasses are expected to assign a serializer to the model by setting the ``__serializer__``
+    attribute to a ``Serializer`` class. When a model is serialized in an API response, the
+    serializer object will be used to turn the model into JSON.
     """
 
     __cache_key__: Optional[str] = None
     __deletion_attr__: Optional[str] = None
-
-    __serialize__: tuple = ()
-    __serialize_self__: tuple = ()
-    __serialize_detailed__: tuple = ()
-    __serialize_very_detailed__: tuple = ()
-    __serialize_nested_include__: tuple = ()
-    __serialize_nested_exclude__: tuple = ()
-
-    __permission_detailed__: Optional[str] = None
-    __permission_very_detailed__: Optional[str] = None
+    __serializer__: Optional[Serializer] = None
 
     @classmethod
     def from_pk(cls: Type[MDL],
