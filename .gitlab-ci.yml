@@ -1,0 +1,15 @@
+image: python:3.6.6
+
+services:
+  - redis
+  - postgresql
+
+before_script:
+  - pip install pipenv
+  - psql -c "CREATE DATABASE \"pulsar-testing\";" -U postgres
+  - pipenv install --dev
+  - sed -i "s/postgresql:\/\//postgresql:\/\/postgres@/" instance/test_config.py
+
+test_:
+  script:
+  - make tests
