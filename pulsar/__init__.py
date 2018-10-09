@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy, event
 from werkzeug import find_modules, import_string
 
 from pulsar.cache import cache, clear_cache_dirty
+from flask_cors import CORS
 from pulsar.exceptions import (APIException, _312Exception, _401Exception,  # noqa
                                _403Exception, _404Exception, _405Exception,
                                _500Exception)
@@ -16,6 +17,7 @@ event.listen(db.session, 'before_flush', clear_cache_dirty)
 
 def create_app(config: str) -> flask.Flask:
     app = flask.Flask(__name__, instance_relative_config=True)
+    CORS(app)
     app.config.from_pyfile(config)
     app.json_encoder = NewJSONEncoder
 
