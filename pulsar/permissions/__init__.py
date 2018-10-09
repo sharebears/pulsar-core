@@ -1,6 +1,4 @@
-import flask
-
-bp = flask.Blueprint('permissions', __name__)
+from pulsar.permissions.routes import bp  # noqa
 
 PERMISSIONS = [
     'modify_permissions',  # View all permissions and modify permissions of users
