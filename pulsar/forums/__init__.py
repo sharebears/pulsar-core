@@ -1,6 +1,4 @@
-import flask
-
-bp = flask.Blueprint('forums', __name__)
+from pulsar.forums.routes import bp  # noqa
 
 # TODO: Flip names so forums is first
 

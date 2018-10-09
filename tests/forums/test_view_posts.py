@@ -52,7 +52,7 @@ def test_add_post_locked(app, authed_client):
 
 
 def test_add_post_length_limit(app, authed_client, monkeypatch):
-    with mock.patch('pulsar.forums.posts.len', lambda _: 200000):
+    with mock.patch('pulsar.forums.routes.posts.len', lambda _: 200000):
         add_permissions(app, 'view_forums', 'create_forum_posts')
         response = authed_client.post('/forums/posts', data=json.dumps({
             'thread_id': 5,
