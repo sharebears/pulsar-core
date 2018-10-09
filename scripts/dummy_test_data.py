@@ -9,7 +9,7 @@ from sqlalchemy.exc import ProgrammingError
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
 from pulsar import create_app, db
-from pulsar.models import User
+from pulsar.users.models import User
 
 ####################################
 ############ CONSTANTS ######## noqa
@@ -80,20 +80,21 @@ db.session.execute(
     ('user_two', '{HASHED_PASSWORD_2}', 'user_two@puls.ar', 0, 1)
     """)
 db.session.execute(
-    f"""INSERT INTO invites (inviter_id, email, id, time_sent, expired, invitee_id) VALUES
+    f"""INSERT INTO invites (inviter_id, email, code, time_sent, expired, invitee_id) VALUES
     (1, 'bright@puls.ar', '{CODE_1}', NOW(), 'f', NULL),
     (1, 'user_three@puls.ar', '{CODE_2}', NOW(), 't', 2),
     (1, 'bright@quas.ar', '{CODE_3}', '2018-03-25 01:09:35.260808+00', 'f', NULL)
     """)
 db.session.execute(
-    f"""INSERT INTO api_keys (user_id, id, keyhashsalt, revoked, permissions) VALUES
+    f"""INSERT INTO api_keys (user_id, hash, keyhashsalt, revoked, permissions) VALUES
     (1, 'abcdefghij', '{HASHED_CODE_1}', 'f',
-        '{{"sample_permission", "sample_2_permission", "sample_3_permission"}}'),
+        '{{"sample_permission", "sample_2_permission", "view_rules", "sample_3_permission"}}'),
     (1, '0987654321', '{HASHED_CODE_3}','f', '{{}}'),
     (2, '1234567890', '{HASHED_CODE_2}', 't', '{{}}')
     """)
 db.session.execute(
     """INSERT INTO users_permissions (user_id, permission) VALUES
+    (1, 'view_rules'),
     (1, 'view_api_keys'),
     (1, 'revoke_api_keys'),
     (1, 'modify_permissions'),
@@ -103,11 +104,6 @@ db.session.execute(
     (1, 'sample_perm_two'),
     (1, 'sample_perm_three'),
     (1, 'sample_permission')
-    """)
-db.session.execute(
-    f"""INSERT INTO sessions (id, user_id, csrf_token) VALUES
-    ('abcdefghij', 1, '{CODE_1}'),
-    ('fc087ea0e6', 1, '8557e86c3d16dc54be6f5468')
     """)
 
 # Forums System ##########################
