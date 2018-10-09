@@ -167,7 +167,7 @@ class Cache(RedisCache):
         return value
 
     def cache_model(self,
-                    model,  # TODO: Fix SinglePKMixin circular import.
+                    model,
                     timeout: int = None) -> Optional[str]:
         """
         Cache a SQLAlchemy model. Does nothing when ``model`` is ``None``.
@@ -190,7 +190,7 @@ class Cache(RedisCache):
         return None
 
     def cache_models(self,
-                     models: list,  # TODO: Fix SinglePKMixin circular import.
+                     models: list,
                      timeout: int = None) -> None:
         """
         Cache a SQLAlchemy model. Does nothing when ``model`` is ``None``.

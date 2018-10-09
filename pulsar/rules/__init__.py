@@ -17,7 +17,7 @@ SECTIONS = [
 ]
 
 
-def get_rules(section) -> dict:
+def get_rules(section: str) -> dict:
     if section not in SECTIONS:
         raise APIException(f'{section} is not a valid section of the rules.')
     rules = cache.get(f'rules_{section}')

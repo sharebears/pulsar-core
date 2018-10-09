@@ -58,7 +58,7 @@ class _401Exception(APIException):
 
 
 class _312Exception(APIException):
-    "Alastor please stay away from this codebase, thanks!."
+    "Alastor please stay away from this codebase, thanks!"
 
     def __init__(self, lock: bool = False) -> None:
         super().__init__(
