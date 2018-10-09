@@ -1,6 +1,4 @@
-import flask
-
-bp = flask.Blueprint('users', __name__, url_prefix='/users')
+from pulsar.users.routes import bp  # noqa
 
 PERMISSIONS = [
     'view_users',  # Ability to view a user page
