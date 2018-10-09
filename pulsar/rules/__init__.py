@@ -69,8 +69,8 @@ def view_rules_overview() -> flask.Response:
     return flask.jsonify(SECTIONS)
 
 
-@require_permission('view_rules')
 @bp.route('/rules/<section>', methods=['GET'])
+@require_permission('view_rules')
 def view_rules(section: str) -> flask.Response:
     """
     View a section of rules. Requires the ``view_rules`` permission.
