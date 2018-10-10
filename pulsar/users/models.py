@@ -209,7 +209,7 @@ class Invite(db.Model, SinglePKMixin):
         :param ip:         IP address the invite was sent from
         """
         while True:
-            code = secrets.token_hex(12)
+            code = secrets.token_urlsafe(24)[:24]
             if not cls.from_pk(code, include_dead=True):
                 break
         cache.delete(cls.__cache_key_of_user__.format(user_id=inviter_id))
@@ -290,10 +290,10 @@ class APIKey(db.Model, SinglePKMixin):
         :return:           A tuple containing the identifier and the new API Key
         """
         while True:
-            hash = secrets.token_hex(5)
+            hash = secrets.token_urlsafe(10)[:10]
             if not cls.from_pk(hash, include_dead=True):
                 break
-        key = secrets.token_hex(8)
+        key = secrets.token_urlsafe(16)[:16]
         cache.delete(cls.__cache_key_of_user__.format(user_id=user_id))
         api_key = super()._new(
             user_id=user_id,

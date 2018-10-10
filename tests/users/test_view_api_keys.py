@@ -71,7 +71,7 @@ def test_view_empty_api_keys(app, authed_client):
 def test_create_api_key(app, client, monkeypatch):
     global HEXES
     HEXES = iter(['a' * 8, 'a' * 16])
-    monkeypatch.setattr('pulsar.users.models.secrets.token_hex', hex_generator)
+    monkeypatch.setattr('pulsar.users.models.secrets.token_urlsafe', hex_generator)
     response = client.post('/users/api_keys', data=json.dumps({
         'username': 'user_one', 'password': '12345'}))
     check_json_response(response, {'key': 'a' * 24})
@@ -83,7 +83,7 @@ def test_create_api_key_with_permissions(app, authed_client, monkeypatch):
     add_permissions(app, 'sample_permission', 'sample_perm_one', 'sample_perm_two')
     global HEXES
     HEXES = iter(['a' * 8, 'a' * 16])
-    monkeypatch.setattr('pulsar.users.models.secrets.token_hex', hex_generator)
+    monkeypatch.setattr('pulsar.users.models.secrets.token_urlsafe', hex_generator)
     authed_client.post('/users/api_keys', data=json.dumps({
         'permissions': ['sample_perm_one', 'sample_perm_two']}),
         content_type='application/json')
