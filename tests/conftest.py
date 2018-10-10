@@ -6,8 +6,17 @@ from contextlib import contextmanager
 import flask
 import pytest
 
-from core import cache, create_app, db
+import core
 from core.users.models import User
+from core import db, cache
+
+
+def create_app():
+    app = flask.Flask(__name__)
+    app.config.from_pyfile('test_config.py')
+    core.init_app(app)
+    return app
+
 
 HASHED_PASSWORD_1 = ('pbkdf2:sha256:50000$XwKgylbI$a4868823e7889553e3cb9f'
                      'd922ad08f39c514c2f018cee3c07cd6b9322cc107d')  # 12345
@@ -74,7 +83,7 @@ def check_dupe_in_list(list_):
 
 @pytest.fixture(autouse=True, scope='session')
 def db_create_tables():
-    app = create_app('test_config.py')
+    app = create_app()
     with app.app_context():
         db.drop_all()
         db.create_all()
@@ -85,7 +94,7 @@ def db_create_tables():
 
 @pytest.fixture
 def app(monkeypatch):
-    app = create_app('test_config.py')
+    app = create_app()
     cache.clear()
     with app.app_context():
         unpopulate_db()
@@ -148,21 +157,9 @@ def populate_db():
 
 def unpopulate_db():
     "Unpopulate the database with test user information."
-    db.engine.execute("DELETE FROM forums_polls_answers")
-    db.engine.execute("DELETE FROM forums_polls_choices")
-    db.engine.execute("DELETE FROM forums_polls")
-    db.engine.execute("DELETE FROM forums_threads_notes")
-    db.engine.execute("DELETE FROM forums_threads_subscriptions")
-    db.engine.execute("DELETE FROM forums_forums_subscriptions")
-    db.engine.execute("DELETE FROM last_viewed_forum_posts")
-    db.engine.execute("DELETE FROM forums_posts_edit_history")
-    db.engine.execute("DELETE FROM forums_posts")
-    db.engine.execute("DELETE FROM forums_threads")
-    db.engine.execute("DELETE FROM forums")
-    db.engine.execute("DELETE FROM forums_categories")
     db.engine.execute("DELETE FROM secondary_class_assoc")
-    db.engine.execute("DELETE FROM forums_permissions")
     db.engine.execute("DELETE FROM users_permissions")
+    db.engine.execute("DELETE FROM forums_permissions")  # Refactor this out
     db.engine.execute("DELETE FROM api_keys")
     db.engine.execute("DELETE FROM invites")
     db.engine.execute("DELETE FROM users")

@@ -29,9 +29,11 @@ def populate_db(app, client):
         (8, 4, 1, 'I dont understand this post', NOW() - INTERVAL '3 MINUTES', 'f', NULL, 'f')""")
     db.engine.execute("""INSERT INTO forums_threads_subscriptions (user_id, thread_id) VALUES
                       (1, 3), (1, 4), (2, 4)""")
+    """
     add_permissions(
         app,
         'forums_threads_permission_3',
         'forums_threads_permission_4',
         table='forums_permissions'
         )
+    """

@@ -52,7 +52,7 @@ def get_all_permissions() -> List[str]:
     :return: The list of permissions
     """
     permissions: List[str] = []
-    for name in find_modules('pulsar', include_packages=True):
+    for name in find_modules('core', include_packages=True):
         mod = import_string(name)
         if hasattr(mod, 'PERMISSIONS') and isinstance(mod.PERMISSIONS, list):
             permissions += mod.PERMISSIONS
