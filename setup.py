@@ -48,6 +48,7 @@ setup(
         'flask-migrate',
         'flask-sqlalchemy',
         'psycopg2-binary',
+        'pytz',
         'redis',
         'voluptuous',
     ],

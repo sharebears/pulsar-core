@@ -12,6 +12,7 @@ MarkupSafe
 psycopg2-binary
 python-dateutil
 python-editor
+pytz
 redis
 six
 SQLAlchemy

@@ -1,15 +1,18 @@
 import flask
 from werkzeug import find_modules, import_string
-from flask_sqlalchemy import event
+from flask_sqlalchemy import event, SQLAlchemy
 
-from core.cache import cache, clear_cache_dirty
 from core.exceptions import (APIException, _312Exception, _401Exception,  # noqa
-                               _403Exception, _404Exception, _405Exception,
-                               _500Exception)
+                             _403Exception, _404Exception, _405Exception,
+                             _500Exception)
 from core.serializer import NewJSONEncoder
+from core.cache import cache, clear_cache_dirty
+
+db = SQLAlchemy()
 
 
-def init_app(app, db):
+def init_app(app):
+    db.init_app(app)
     cache.init_app(app)
     app.json_encoder = NewJSONEncoder
     event.listen(db.session, 'before_flush', clear_cache_dirty)
@@ -18,7 +21,7 @@ def init_app(app, db):
         register_blueprints(app)
         register_error_handlers(app)
 
-    return app
+    return db
 
 
 def register_blueprints(app: flask.Flask) -> None:

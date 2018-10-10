@@ -1,6 +1,6 @@
 import flask
 
-from core.forums.models import ForumThread
+# from core.forums.models import ForumThread
 from core.utils import choose_user, require_permission
 
 from . import bp
