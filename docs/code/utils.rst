@@ -4,20 +4,20 @@ Utils
 Permissions
 -----------
 
-.. automodule:: pulsar.utils.permissions
+.. automodule:: core.utils.permissions
     :members:
     :show-inheritance:
 
 Validation
 ----------
 
-.. automodule:: pulsar.utils.validation
+.. automodule:: core.utils.validation
     :members:
     :show-inheritance:
 
 Memoization
 -----------
 
-.. automodule:: pulsar.utils.memoization
+.. automodule:: core.utils.memoization
     :members:
     :show-inheritance:

@@ -8,8 +8,8 @@ from sqlalchemy.exc import ProgrammingError
 # Add root project dir to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa
 
-from pulsar import create_app, db
-from pulsar.users.models import User
+from core import create_app, db
+from core.users.models import User
 
 ####################################
 ############ CONSTANTS ######## noqa

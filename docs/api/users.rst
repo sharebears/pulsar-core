@@ -15,7 +15,7 @@ To authenticate with an API key, send it in the request header as
 
 .. autoflask:: pulsar:create_app('config.py')
    :undoc-static:
-   :modules: pulsar.users.api_keys
+   :modules: core.users.api_keys
    :groupby: view
    :order: path
 
@@ -24,7 +24,7 @@ Invites
 
 .. autoflask:: pulsar:create_app('config.py')
    :undoc-static:
-   :modules: pulsar.users.invites
+   :modules: core.users.invites
    :groupby: view
    :order: path
 
@@ -33,7 +33,7 @@ Settings
 
 .. autoflask:: pulsar:create_app('config.py')
    :undoc-static:
-   :modules: pulsar.users.settings
+   :modules: core.users.settings
    :groupby: view
    :order: path
 
@@ -42,7 +42,7 @@ Users
 
 .. autoflask:: pulsar:create_app('config.py')
    :undoc-static:
-   :modules: pulsar.users.users
+   :modules: core.users.users
    :groupby: view
    :order: path
 
@@ -51,6 +51,6 @@ Moderation
 
 .. autoflask:: pulsar:create_app('config.py')
    :undoc-static:
-   :modules: pulsar.users.moderate
+   :modules: core.users.moderate
    :groupby: view
    :order: path

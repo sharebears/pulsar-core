@@ -17,20 +17,20 @@ schema.
 Users
 -----
 
-.. automodule:: pulsar.users.models
+.. automodule:: core.users.models
     :members:
     :show-inheritance:
 
 Permissions
 -----------
 
-.. automodule:: pulsar.permissions.models
+.. automodule:: core.permissions.models
     :members:
     :show-inheritance:
 
 Forums
 ------
 
-.. automodule:: pulsar.forums.models
+.. automodule:: core.forums.models
     :members:
     :show-inheritance:

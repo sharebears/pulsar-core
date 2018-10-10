@@ -1,7 +1,7 @@
 pulsar
 ======
 
-.. image:: https://travis-ci.org/sharebears/pulsar.svg?branch=master
+.. image:: https://travis-ci.org/sharebears/core.svg?branch=master
     :target: https://travis-ci.org/sharebears/pulsar
 .. image:: https://coveralls.io/repos/github/sharebears/pulsar/badge.svg?branch=master
     :target: https://coveralls.io/github/sharebears/pulsar?branch=master
@@ -56,7 +56,7 @@ migrations by hand.
 Development
 -----------
 pulsar runs on the Flask micro-framework. Flask has great documentation, which can answer
-most or all of your questions about the underlying framework objects used by pulsar.
+most or all of your questions about the underlying framework objects used by core.
 
 Code documentation, including the style guide, is available here:
 https://sharebears.github.io/pulsar-docs/html/code/index.html.

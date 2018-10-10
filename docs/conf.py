@@ -142,7 +142,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pulsar.tex', 'pulsar Documentation',
+    (master_doc, 'core.tex', 'pulsar Documentation',
      'lights', 'manual'),
 ]
 

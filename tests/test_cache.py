@@ -1,8 +1,8 @@
 import flask
 
 from conftest import add_permissions
-from pulsar import cache, db
-from pulsar.users.models import User
+from core import cache, db
+from core.users.models import User
 
 
 def test_get_from_cache(app, authed_client):
@@ -86,7 +86,7 @@ def test_cache_autoclear_dirty_and_deleted(app, client):
 def test_cache_doesnt_autoclear_dirty_and_deleted_(app, client, monkeypatch):
     """The cache does not autoclear dirty models upon commit if they do not have cache keys."""
     user = User.from_pk(1)
-    monkeypatch.setattr('pulsar.users.models.User.__cache_key__', None)
+    monkeypatch.setattr('core.users.models.User.__cache_key__', None)
     user.set_password('testing')
     assert cache.has('users_1')
     db.session.commit()
@@ -95,7 +95,7 @@ def test_cache_doesnt_autoclear_dirty_and_deleted_(app, client, monkeypatch):
 
 def test_cache_set_key_bad(app, client, monkeypatch):
     """A bad key should not be added to the DB."""
-    monkeypatch.setattr('pulsar.cache._client.setex', lambda *a, **k: False)
+    monkeypatch.setattr('core.cache._client.setex', lambda *a, **k: False)
     with app.test_request_context('/test'):
         cache.set('blah', 2, timeout=60)
         assert 'blah' not in flask.g.cache_keys['set']

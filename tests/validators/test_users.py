@@ -1,8 +1,8 @@
 import pytest
 from voluptuous import Invalid
 
-from pulsar import APIException
-from pulsar.validators import ValInviteCode, ValUsername
+from core import APIException
+from core.validators import ValInviteCode, ValUsername
 
 
 @pytest.mark.parametrize(

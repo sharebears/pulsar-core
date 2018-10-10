@@ -1,7 +1,7 @@
 import pytest
 from voluptuous import Invalid
 
-from pulsar.validators import BoolGET
+from core.validators import BoolGET
 
 
 @pytest.mark.parametrize(

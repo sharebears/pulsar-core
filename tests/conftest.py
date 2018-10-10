@@ -6,8 +6,8 @@ from contextlib import contextmanager
 import flask
 import pytest
 
-from pulsar import cache, create_app, db
-from pulsar.users.models import User
+from core import cache, create_app, db
+from core.users.models import User
 
 HASHED_PASSWORD_1 = ('pbkdf2:sha256:50000$XwKgylbI$a4868823e7889553e3cb9f'
                      'd922ad08f39c514c2f018cee3c07cd6b9322cc107d')  # 12345

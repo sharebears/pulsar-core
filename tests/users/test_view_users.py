@@ -3,7 +3,7 @@ import json
 import pytest
 
 from conftest import CODE_1, CODE_2, CODE_4, add_permissions, check_json_response
-from pulsar import cache
+from core import cache
 
 
 def test_get_user_self_and_caches(app, authed_client):

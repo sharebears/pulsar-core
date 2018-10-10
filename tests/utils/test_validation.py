@@ -4,7 +4,7 @@ import flask
 from voluptuous import Schema
 
 from conftest import check_json_response
-from pulsar.utils import validate_data
+from core.utils import validate_data
 
 
 def test_invalid_schema(app, authed_client):

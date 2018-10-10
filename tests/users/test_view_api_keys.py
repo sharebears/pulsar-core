@@ -4,9 +4,9 @@ import flask
 import pytest
 
 from conftest import CODE_1, CODE_2, CODE_3, add_permissions, check_json_response
-from pulsar import cache
-from pulsar.users.models import APIKey
-from pulsar.utils import require_permission
+from core import cache
+from core.users.models import APIKey
+from core.utils import require_permission
 
 
 def hex_generator(_):
@@ -71,7 +71,7 @@ def test_view_empty_api_keys(app, authed_client):
 def test_create_api_key(app, client, monkeypatch):
     global HEXES
     HEXES = iter(['a' * 8, 'a' * 16])
-    monkeypatch.setattr('pulsar.users.models.secrets.token_urlsafe', hex_generator)
+    monkeypatch.setattr('core.users.models.secrets.token_urlsafe', hex_generator)
     response = client.post('/users/api_keys', data=json.dumps({
         'username': 'user_one', 'password': '12345'}))
     check_json_response(response, {'key': 'a' * 24})
@@ -83,7 +83,7 @@ def test_create_api_key_with_permissions(app, authed_client, monkeypatch):
     add_permissions(app, 'sample_permission', 'sample_perm_one', 'sample_perm_two')
     global HEXES
     HEXES = iter(['a' * 8, 'a' * 16])
-    monkeypatch.setattr('pulsar.users.models.secrets.token_urlsafe', hex_generator)
+    monkeypatch.setattr('core.users.models.secrets.token_urlsafe', hex_generator)
     authed_client.post('/users/api_keys', data=json.dumps({
         'permissions': ['sample_perm_one', 'sample_perm_two']}),
         content_type='application/json')

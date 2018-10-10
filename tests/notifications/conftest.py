@@ -1,7 +1,7 @@
 import pytest
 
 from conftest import add_permissions
-from pulsar import db
+from core import db
 
 
 @pytest.fixture(autouse=True)

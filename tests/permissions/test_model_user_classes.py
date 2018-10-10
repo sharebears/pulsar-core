@@ -2,8 +2,8 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from conftest import check_dictionary
-from pulsar import APIException, NewJSONEncoder, cache, db
-from pulsar.permissions.models import SecondaryClass, UserClass
+from core import APIException, NewJSONEncoder, cache, db
+from core.permissions.models import SecondaryClass, UserClass
 
 
 @pytest.mark.parametrize(

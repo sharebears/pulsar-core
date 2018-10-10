@@ -10,7 +10,7 @@ mixins and cache module.
 Models subclassing the ``SinglePKMixin`` will be cached whenever they are fetched from 
 the database. Future requests that request that resource will access the cached model 
 instead of querying the database. Caching can result in out of date data, but steps are 
-taken against that happening in pulsar. Whenever a model is modified and flushed to the 
+taken against that happening in core. Whenever a model is modified and flushed to the 
 database, a listener (``clear_cache_dirty``) will automatically expire its cache key. The 
 only keys which need to be explicitly expired in a view or model are the cache keys for 
 lists of models, which are typically lists of their primary keys.
@@ -18,7 +18,7 @@ lists of models, which are typically lists of their primary keys.
 Below is the cache class--it contains the interface used to communicate with redis. Below 
 it is the listener that automatically clears cache keys upon database flush.
 
-.. automodule:: pulsar.cache
+.. automodule:: core.cache
     :members:
     :undoc-members:
     :show-inheritance:

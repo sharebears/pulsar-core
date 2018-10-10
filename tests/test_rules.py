@@ -1,5 +1,5 @@
 from conftest import add_permissions, check_json_response
-from pulsar import cache
+from core import cache
 
 
 def test_get_sections(app, authed_client):
@@ -26,7 +26,7 @@ def test_get_rules_nonexistent(app, authed_client):
 def test_get_rules_cache(app, authed_client, monkeypatch):
     add_permissions(app, 'view_rules')
     authed_client.get('/rules/golden')  # cache
-    monkeypatch.setattr('pulsar.rules.os', None)
+    monkeypatch.setattr('core.rules.os', None)
     response = authed_client.get('/rules/golden').get_json()
     assert isinstance(response['response'], dict)
     assert '1' in response['response']

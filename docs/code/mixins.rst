@@ -1,22 +1,22 @@
 Model Mixins
 ============
 
-.. automodule:: pulsar.mixins.class_
+.. automodule:: core.mixins.class_
     :members:
     :show-inheritance:
 
-.. automodule:: pulsar.mixins.multi_pk
+.. automodule:: core.mixins.multi_pk
     :members:
     :show-inheritance:
 
-.. automodule:: pulsar.mixins.permission
+.. automodule:: core.mixins.permission
     :members:
     :show-inheritance:
 
-.. automodule:: pulsar.mixins.serializer
+.. automodule:: core.mixins.serializer
     :members:
     :show-inheritance:
 
-.. automodule:: pulsar.mixins.single_pk
+.. automodule:: core.mixins.single_pk
     :members:
     :show-inheritance:

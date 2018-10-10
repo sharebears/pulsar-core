@@ -1,7 +1,7 @@
 JSON Serialization
 ==================
 
-.. automodule:: pulsar.serializer
+.. automodule:: core.serializer
     :members:
     :undoc-members:
     :private-members:

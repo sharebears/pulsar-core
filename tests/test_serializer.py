@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 import pytz
 
-from pulsar import NewJSONEncoder
+from core import NewJSONEncoder
 
 
 def test_failed_serialization_default():

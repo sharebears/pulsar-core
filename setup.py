@@ -35,7 +35,7 @@ setup(
     author_email='sharebears@tutanota.de',
     url='https://github.com/sharebears',
     packages=[
-        'pulsar',
+        'core',
     ],
     include_package_data=True,
     python_requires='==3.7',

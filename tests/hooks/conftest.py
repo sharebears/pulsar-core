@@ -1,7 +1,7 @@
 import pytest
 
 from conftest import HASHED_CODE_1, HASHED_CODE_2
-from pulsar import db
+from core import db
 
 
 @pytest.fixture(autouse=True)

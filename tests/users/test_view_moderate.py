@@ -3,9 +3,9 @@ import json
 import pytest
 
 from conftest import add_permissions, check_json_response
-from pulsar import db
-from pulsar.permissions.models import ForumPermission, UserPermission
-from pulsar.users.models import User
+from core import db
+from core.permissions.models import ForumPermission, UserPermission
+from core.users.models import User
 
 
 def test_int_overflow(app, authed_client):

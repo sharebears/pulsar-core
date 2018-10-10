@@ -3,7 +3,7 @@ import json
 import pytest
 
 from conftest import add_permissions, check_json_response
-from pulsar import db
+from core import db
 
 
 def test_get_all_permissions(app, authed_client):

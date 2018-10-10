@@ -2,7 +2,7 @@ import flask
 import pytest
 
 from conftest import add_permissions, check_json_response
-from pulsar.utils import assert_permission, assert_user, choose_user
+from core.utils import assert_permission, assert_user, choose_user
 
 
 @pytest.mark.parametrize(

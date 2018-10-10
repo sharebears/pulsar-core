@@ -3,8 +3,8 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from conftest import CODE_3, add_permissions, check_dictionary, check_json_response
-from pulsar import APIException, NewJSONEncoder, cache, db
-from pulsar.users.models import User
+from core import APIException, NewJSONEncoder, cache, db
+from core.users.models import User
 
 
 def test_user_creation(app, client):
@@ -79,7 +79,7 @@ def test_user_permissions_property_cached(app, client, monkeypatch):
     assert set(user.permissions) == {'four', 'one', 'three'}
     assert cache.has(user.__cache_key_permissions__.format(id=user.id))
     del user
-    with mock.patch('pulsar.users.models.User.user_class_model', None):
+    with mock.patch('core.users.models.User.user_class_model', None):
         user = User.from_pk(1)
         assert set(user.permissions) == {'four', 'one', 'three'}
 

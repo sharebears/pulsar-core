@@ -5,10 +5,10 @@ import pytest
 from voluptuous import Schema
 
 from conftest import CODE_1, CODE_2, add_permissions, check_json_response
-from pulsar import APIException, cache, db
-from pulsar.hooks.before import check_rate_limit
-from pulsar.users.models import User
-from pulsar.utils import require_permission, validate_data
+from core import APIException, cache, db
+from core.hooks.before import check_rate_limit
+from core.users.models import User
+from core.utils import require_permission, validate_data
 
 
 def cache_num_iter(*args, **kwargs):
@@ -131,8 +131,8 @@ def test_disabled_user(app, client):
 
 def test_rate_limit_fail(app, client, monkeypatch):
     """Exceeding the per-key rate limit should return a failure message."""
-    monkeypatch.setattr('pulsar.hooks.before.cache.inc', lambda *a, **k: 51)
-    monkeypatch.setattr('pulsar.hooks.before.cache.ttl', lambda *a, **k: 7)
+    monkeypatch.setattr('core.hooks.before.cache.inc', lambda *a, **k: 51)
+    monkeypatch.setattr('core.hooks.before.cache.ttl', lambda *a, **k: 7)
     response = client.get('/fake_endpoint', headers={
         'Authorization': f'Token abcdefghij{CODE_1}'
         })
@@ -143,8 +143,8 @@ def test_rate_limit_user_fail(app, client, monkeypatch):
     """Exceeding the per-user rate limit should return a failure message."""
     global CACHE_NUM
     CACHE_NUM = iter([2, 91])
-    monkeypatch.setattr('pulsar.hooks.before.cache.inc', cache_num_iter)
-    monkeypatch.setattr('pulsar.hooks.before.cache.ttl', lambda *a, **k: 7)
+    monkeypatch.setattr('core.hooks.before.cache.inc', cache_num_iter)
+    monkeypatch.setattr('core.hooks.before.cache.ttl', lambda *a, **k: 7)
     response = client.get('/fake_endpoint', headers={
         'Authorization': f'Token abcdefghij{CODE_1}',
         })
@@ -157,7 +157,7 @@ api_key = namedtuple('APIKey', ['hash'])
 
 def test_rate_limit_function(app, client, monkeypatch):
     """Test that the per-key rate limit function correctly increments and errors."""
-    monkeypatch.setattr('pulsar.hooks.before.flask.g', g(
+    monkeypatch.setattr('core.hooks.before.flask.g', g(
         user=User.from_pk(1),
         api_key=api_key(hash='abcdefghij'),
         cache_keys=defaultdict(set),
@@ -170,7 +170,7 @@ def test_rate_limit_function(app, client, monkeypatch):
 
 def test_rate_limit_function_global(app, client, monkeypatch):
     """Test that the per-user rate limit function correctly increments and errors."""
-    monkeypatch.setattr('pulsar.hooks.before.flask.g', g(
+    monkeypatch.setattr('core.hooks.before.flask.g', g(
         user=User.from_pk(1),
         api_key=api_key(hash='abcdefghij'),
         cache_keys=defaultdict(set),

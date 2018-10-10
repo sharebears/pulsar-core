@@ -2,7 +2,7 @@ import pytest
 from voluptuous import LengthInvalid
 
 from conftest import add_permissions
-from pulsar.validators import PostLength
+from core.validators import PostLength
 
 
 def test_post_length_override(app, authed_client):

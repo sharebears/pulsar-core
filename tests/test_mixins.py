@@ -1,8 +1,8 @@
 
 import pytest
 
-from pulsar.mixins import SinglePKMixin
-from pulsar.permissions.models import UserClass
+from core.mixins import SinglePKMixin
+from core.permissions.models import UserClass
 
 
 def test_belongs_to_user_fails_authed(app, authed_client):

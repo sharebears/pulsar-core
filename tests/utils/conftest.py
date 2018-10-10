@@ -1,6 +1,6 @@
 import pytest
 
-from pulsar import db
+from core import db
 
 
 @pytest.fixture(autouse=True)
