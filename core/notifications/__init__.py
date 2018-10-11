@@ -6,3 +6,5 @@ PERMISSIONS = [
     'view_notifications',
     'view_notifications_others',
     ]
+
+TYPES = []
