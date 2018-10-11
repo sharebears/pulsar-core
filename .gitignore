@@ -9,3 +9,4 @@ config.py
 !.travis.yml
 !.gitlab-ci.yml
 !.nojekyll
+!.gitkeep
