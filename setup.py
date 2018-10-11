@@ -37,9 +37,11 @@ setup(
     packages=[
         'core',
     ],
-    include_package_data=True,
     python_requires='==3.7',
-    tests_require=['pytest'],
+    tests_require=[
+        'pytest',
+        'mock',
+    ],
     cmdclass={'test': PyTest},
     install_requires=[
         'blinker',

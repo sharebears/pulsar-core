@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from core.utils.permissions import get_all_permissions  # noqa
 
-project_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'pulsar')
+project_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'core')
 
 all_permissions = get_all_permissions()
 used_permissions = []
