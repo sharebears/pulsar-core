@@ -100,10 +100,10 @@ class User(db.Model, SinglePKMixin):
             attr='permissions')
 
     @cached_property
-    def forum_permissions(self) -> List[str]:
+    def forum_permissions(self) -> List[str]:  # TODO: REMOVE.
         from core.permissions.models import ForumPermission
         return self._get_permissions(
-            key=self.__cache_key_forum_permissions__.format(id=self.id),
+            key='',
             model=ForumPermission,
             attr='forum_permissions')
 
