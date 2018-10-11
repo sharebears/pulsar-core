@@ -28,9 +28,6 @@ class User(db.Model, SinglePKMixin):
     __serializer__ = UserSerializer
     __cache_key__ = 'users_{id}'
     __cache_key_permissions__ = 'users_{id}_permissions'
-    __cache_key_forum_permissions__ = 'users_{id}_forums_permissions'
-    __cache_key_forum_post_count__ = 'users_{id}_forum_post_count'
-    __cache_key_forum_thread_count__ = 'users_{id}_forum_thread_count'
 
     id: int = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String(32), unique=True, nullable=False)
@@ -147,22 +144,6 @@ class User(db.Model, SinglePKMixin):
     def user_class_model(self) -> 'UserClass_':
         from core.permissions.models import UserClass
         return UserClass.from_pk(self.user_class_id)
-
-    @cached_property
-    def forum_post_count(self) -> int:
-        from core.forums.models import ForumPost
-        return self.count(
-            key=self.__cache_key_forum_post_count__.format(id=self.id),
-            attribute=ForumPost.id,
-            filter=ForumPost.poster_id == self.id)
-
-    @cached_property
-    def forum_thread_count(self) -> int:
-        from core.forums.models import ForumThread
-        return self.count(
-            key=self.__cache_key_forum_thread_count__.format(id=self.id),
-            attribute=ForumThread.id,
-            filter=ForumThread.poster_id == self.id)
 
     def belongs_to_user(self) -> bool:
         """Check whether or not the requesting user matches this user."""
