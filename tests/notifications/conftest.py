@@ -1,6 +1,5 @@
 import pytest
 
-from conftest import add_permissions
 from core import db
 
 

@@ -9,7 +9,7 @@ from core.permissions.models import ForumPermission, UserPermission
 from core.users.models import User
 from core.utils import get_all_permissions, require_permission, validate_data
 from core.validators import (PASSWORD_REGEX, ForumPermissionsDict, PermissionsDict,
-                               check_permissions)
+                             check_permissions)
 
 from . import bp
 
