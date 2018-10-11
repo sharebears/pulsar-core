@@ -21,8 +21,6 @@ def init_app(app):
         register_blueprints(app)
         register_error_handlers(app)
 
-    return db
-
 
 def register_blueprints(app: flask.Flask) -> None:
     # Every sub-view needs to be imported to populate the blueprint.
