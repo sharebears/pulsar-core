@@ -1,5 +1,6 @@
-import flask
 from typing import List
+
+import flask
 
 bp = flask.Blueprint('notifications', __name__)
 

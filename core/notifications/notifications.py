@@ -1,11 +1,10 @@
 import flask
+from voluptuous import All, In, Range, Schema
 
 from core import APIException, db
-from core.utils import choose_user, require_permission
 from core.notifications import TYPES
 from core.notifications.models import Notification
-from voluptuous import All, In, Range, Schema
-from core.utils import validate_data
+from core.utils import choose_user, require_permission, validate_data
 from core.validators import BoolGET
 
 from . import bp

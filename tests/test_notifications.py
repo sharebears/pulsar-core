@@ -1,7 +1,8 @@
-from core.notifications.models import Notification
 import pytest
+
 from core import db
 from core.notifications import TYPES
+from core.notifications.models import Notification
 
 TYPES.append('subscripple')
 TYPES.append('quote')

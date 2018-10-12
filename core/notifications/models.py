@@ -1,13 +1,14 @@
-from typing import List, Dict
+from datetime import datetime
 from itertools import chain
+from typing import Dict, List
 
-from sqlalchemy import and_
 import flask
+from sqlalchemy import and_, func
 
-from core import db, cache
+from core import cache, db
 from core.mixins import SinglePKMixin
-from core.notifications.serializers import NotificationSerializer
 from core.notifications import TYPES
+from core.notifications.serializers import NotificationSerializer
 
 app = flask.current_app
 
@@ -23,6 +24,8 @@ class Notification(db.Model, SinglePKMixin):
     id: int = db.Column(db.Integer, primary_key=True)
     user_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     type: str = db.Column(db.String, nullable=False, index=True)
+    time: datetime = db.Column(
+        db.DateTime(timezone=True), nullable=False, server_default=func.now())
     contents: str = db.Column(db.Text, nullable=False)
     read: bool = db.Column(db.Boolean, nullable=False, server_default='f', index=True)
 

@@ -1,15 +1,15 @@
 import os
-from typing import List, Callable, Any
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
+from typing import Any, Callable, List
 
 import flask
 import pytest
 
 import core
+from core import cache, db
 from core.users.models import User
-from core import db, cache
 
 UNPOPULATE_FUNCTIONS: List[Callable] = []
 PLUGINS: List[Any] = []
