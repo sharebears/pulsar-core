@@ -1,7 +1,9 @@
 import flask
 
-# from core.forums.models import ForumThread
+from core import APIException
 from core.utils import choose_user, require_permission
+from core.notifications import TYPES
+from core.notifications.models import Notification
 
 from . import bp
 
@@ -15,17 +17,18 @@ def view_notifications(user_id=None):
     collage notifications, torrent notifications, and inbox messages.
     """
     user = choose_user(user_id, 'view_notifications_others')
-    return flask.jsonify({
-        'forum_subscriptions': ForumThread.new_subscriptions(user.id),
-        })
+    return flask.jsonify(Notification.get_all_unread(user.id))
 
 
-@bp.route('/subscriptions', methods=['GET'])
-@bp.route('/subscriptions/user/<int:user_id>', methods=['GET'])
+@bp.route('/notifications/<type>', methods=['GET'])
+@bp.route('/notifications/<type>/user/<int:user_id>', methods=['GET'])
 @require_permission('view_notifications')
-def view_subscriptions(user_id=None):
+def view_notification_type(type, user_id=None):
     """
-    View all pending subscriptions for a user.
+    View all pending notifications for a user. This includes thread subscriptions,
+    collage notifications, torrent notifications, and inbox messages.
     """
     user = choose_user(user_id, 'view_notifications_others')
-    return flask.jsonify(ForumThread.new_subscriptions(user.id))
+    if type in TYPES:
+        return flask.jsonify(Notification.from_type(user.id, type))
+    raise APIException(f'{type} is not a valid notification type.')

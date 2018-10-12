@@ -377,7 +377,8 @@ class SinglePKMixin(Model):
                 and isinstance(data, dict)
                 and set(data.keys()) == set(cls.__table__.columns.keys()))
 
-    def count(self,
+    @classmethod
+    def count(cls,
               *,
               key: str,
               attribute: InstrumentedAttribute,
@@ -395,7 +396,7 @@ class SinglePKMixin(Model):
         """
         count = cache.get(key)
         if not isinstance(count, int):
-            query = self._construct_query(db.session.query(func.count(attribute)), filter)
+            query = cls._construct_query(db.session.query(func.count(attribute)), filter)
             count = query.scalar()
             cache.set(key, count)
         return count

@@ -1,4 +1,5 @@
 import os
+from typing import List, Callable, Any
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
@@ -10,8 +11,8 @@ import core
 from core.users.models import User
 from core import db, cache
 
-UNPOPULATE_FUNCTIONS = []
-PLUGINS = []
+UNPOPULATE_FUNCTIONS: List[Callable] = []
+PLUGINS: List[Any] = []
 
 
 def create_app():
@@ -163,6 +164,7 @@ def populate_db():
 
 
 def unpopulate_db():
+    db.engine.execute("DELETE FROM notifications")
     db.engine.execute("DELETE FROM secondary_class_assoc")
     db.engine.execute("DELETE FROM forums_permissions")
     db.engine.execute("DELETE FROM users_permissions")
