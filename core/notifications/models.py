@@ -1,9 +1,10 @@
 from typing import List, Dict
+from itertools import chain
 
 from sqlalchemy import and_
 import flask
 
-from core import db
+from core import db, cache
 from core.mixins import SinglePKMixin
 from core.notifications.serializers import NotificationSerializer
 from core.notifications import TYPES
@@ -38,11 +39,7 @@ class Notification(db.Model, SinglePKMixin):
                        limit: int = 25) -> Dict[str, List['Notification']]:
         return {t: cls.get_many(
             key=cls.__cache_key_of_user__.format(user_id=user_id, type=t),
-            filter=and_(
-                cls.user_id == user_id,
-                cls.type == t,
-                cls.read == 'f'
-                ),
+            filter=and_(cls.user_id == user_id, cls.type == t),
             limit=limit) for t in TYPES}
 
     @classmethod
@@ -60,6 +57,20 @@ class Notification(db.Model, SinglePKMixin):
             include_dead=include_read)
 
     @classmethod
+    def get_pks_from_type(cls,
+                          user_id: int,
+                          type: str,
+                          include_read: bool):
+        filter = cls.user_id == user_id
+        if type:
+            filter = and_(filter, cls.type == type)
+
+        return cls.get_pks_of_many(
+            key=cls.__cache_key_of_user__.format(user_id=user_id, type=type),
+            filter=filter,
+            include_dead=include_read)
+
+    @classmethod
     def get_notification_counts(cls, user_id: int) -> Dict[str, int]:
         return {t: cls.count(
             key=cls.__cache_key_notification_count__.format(user_id=user_id, type=t),
@@ -69,3 +80,11 @@ class Notification(db.Model, SinglePKMixin):
                 cls.type == t,
                 cls.read == 'f'
                 )) for t in TYPES}
+
+    @classmethod
+    def clear_cache_keys(cls, user_id: int, type=None) -> None:
+        type = [type] or TYPES
+        cache.delete_many(*chain(*chain([(
+            cls.__cache_key_notification_count__.format(user_id=user_id, type=t),
+            cls.__cache_key_of_user__.format(user_id=user_id, type=t)
+            ) for t in type])))
