@@ -79,10 +79,6 @@ class SinglePKMixin(Model):
         return None
 
     @classmethod
-    def get_primary_key(cls) -> str:
-        return inspect(cls).primary_key[0].name
-
-    @classmethod
     def from_cache(cls: Type[MDL],
                    key: str,
                    *,
@@ -272,6 +268,14 @@ class SinglePKMixin(Model):
                                  models: List[MDL],
                                  pks: List[Union[str, int]],
                                  filter: BinaryExpression = None) -> None:
+        """
+        Given a list of primary keys, fetch the objects corresponding to them from
+        the cache and the database.
+
+        :param models:  A list of models to append new ones to
+        :param pks:     Primary keys of the objects to fetch
+        :param filter:  What to filter out from the query for the objects
+        """
         uncached_pks = []
         cached_dict = cache.get_dict(*(cls.create_cache_key(pk) for pk in pks))
         for i, (k, v) in zip(pks, cached_dict.items()):
@@ -443,6 +447,10 @@ class SinglePKMixin(Model):
             pass
 
     def serialize(self, **kwargs) -> None:
+        """
+        Serializes the object with the serializer assigned to the ``__serializer__``
+        attribute. Takes the same kwargs that the ``__serializer__`` object does.
+        """
         return self.__serializer__.serialize(self, **kwargs)
 
     @staticmethod
@@ -465,8 +473,20 @@ class SinglePKMixin(Model):
             query = query.order_by(order)
         return query
 
+    @classmethod
+    def get_primary_key(cls) -> str:
+        """
+        Get the name of the primary key attribute of the model.
+
+        :return: The primary key
+        """
+        return inspect(cls).primary_key[0].name
+
     @property
     def primary_key(self) -> Union[int, str]:
+        """
+        :return: The value associated with the primary key of the model
+        """
         return getattr(self, self.get_primary_key())
 
     @property

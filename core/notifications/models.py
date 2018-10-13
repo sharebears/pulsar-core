@@ -4,6 +4,7 @@ from typing import Dict, List
 
 import flask
 from sqlalchemy import and_, func
+from sqlalchemy.dialects.postgresql import JSONB
 
 from core import cache, db
 from core.mixins import SinglePKMixin
@@ -26,7 +27,7 @@ class Notification(db.Model, SinglePKMixin):
     type: str = db.Column(db.String, nullable=False, index=True)
     time: datetime = db.Column(
         db.DateTime(timezone=True), nullable=False, server_default=func.now())
-    contents: str = db.Column(db.Text, nullable=False)
+    contents: str = db.Column(JSONB, nullable=False)
     read: bool = db.Column(db.Boolean, nullable=False, server_default='f', index=True)
 
     @classmethod

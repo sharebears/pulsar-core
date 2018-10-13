@@ -28,7 +28,7 @@ setup(
     name='pulsar-core',
     version='0.0.2',
     description='A bittorrent indexer written in Flask.',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     license='MIT',
     author='sharebears',
