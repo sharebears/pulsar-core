@@ -13,11 +13,11 @@ TYPES.append('unreal')
 def populate_db(client):
     db.engine.execute(
         """INSERT INTO notifications (id, user_id, type, contents, read) VALUES
-        (1, 1, 'subscripple', 'A Subscribe!', 'f'),
-        (2, 2, 'quote', 'A Quote!', 'f'),
-        (3, 1, 'quote', 'A Quote!', 'f'),
-        (4, 2, 'unreal', 'abcdef', 'f'),
-        (5, 1, 'unreal', 'defgh', 't')
+        (1, 1, 'subscripple', '{"contents": "A Subscribe!"}', 'f'),
+        (2, 2, 'quote', '{"contents": "A Quote!"}', 'f'),
+        (3, 1, 'quote', '{"contents": "A Quote!"}', 'f'),
+        (4, 2, 'unreal', '{"contents": "abcdef"}', 'f'),
+        (5, 1, 'unreal', '{"contents": "defgh"}', 't')
         """)
     db.engine.execute("ALTER SEQUENCE notifications_id_seq RESTART WITH 6")
 
@@ -26,9 +26,9 @@ def test_new_notification(client):
     noti = Notification.new(
         user_id=1,
         type='subscripple',
-        contents='New Subscrippletion!')
+        contents={'contents': 'New Subscrippletion!'})
     assert noti.id == 6
-    assert noti.contents == 'New Subscrippletion!'
+    assert noti.contents['contents'] == 'New Subscrippletion!'
     assert noti.read is False
 
 
@@ -37,7 +37,7 @@ def test_get_notification_model(client):
     assert noti.id == 1
     assert noti.user_id == 1
     assert noti.type == 'subscripple'
-    assert noti.contents == 'A Subscribe!'
+    assert noti.contents['contents'] == 'A Subscribe!'
     assert noti.read is False
 
 
