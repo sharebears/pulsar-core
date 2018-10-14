@@ -259,6 +259,7 @@ class APIKey(db.Model, SinglePKMixin):
             user_id: int,
             ip: str,
             user_agent: str,
+            permanent: bool,
             permissions: List[str] = None) -> Tuple[str, 'APIKey']:
         """
         Create a new API Key with randomly generated secret keys and the
@@ -283,6 +284,7 @@ class APIKey(db.Model, SinglePKMixin):
             keyhashsalt=generate_password_hash(key),
             ip=ip,
             user_agent=user_agent,
+            permanent=permanent,
             permissions=permissions or [])
         return (hash + key, api_key)
 

@@ -10,7 +10,7 @@ def hex_generator(_):
 
 
 def test_new_key(app, client):
-    raw_key, api_key = APIKey.new(2, '127.0.0.2', 'UA')
+    raw_key, api_key = APIKey.new(2, '127.0.0.2', 'UA', False)
     assert len(raw_key) == 26
     assert api_key.ip == '127.0.0.2'
     assert api_key.user_id == 2
@@ -22,7 +22,7 @@ def test_api_key_collision(app, client, monkeypatch):
     HEXES = iter([CODE_2[:10], CODE_3[:10], CODE_1[:16]])
     monkeypatch.setattr('core.users.models.secrets.token_urlsafe', hex_generator)
 
-    raw_key, api_key = APIKey.new(2, '127.0.0.2', 'UA')
+    raw_key, api_key = APIKey.new(2, '127.0.0.2', 'UA', False)
     assert len(raw_key) == 26
     assert api_key.hash != CODE_2[:10]
     with pytest.raises(StopIteration):
@@ -66,7 +66,6 @@ def test_serialize_detailed(app, authed_client):
         'permissions': [],
         })
     assert 'last_used' in data and isinstance(data['last_used'], int)
-    assert len(data) == 7
 
 
 def test_serialize_self(app, authed_client):
@@ -81,4 +80,3 @@ def test_serialize_self(app, authed_client):
         'permissions': ['sample_permission', 'sample_2_permission', 'sample_3_permission'],
         })
     assert 'last_used' in data and isinstance(data['last_used'], int)
-    assert len(data) == 7

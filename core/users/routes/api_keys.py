@@ -87,6 +87,7 @@ def view_all_api_keys(include_dead: bool,
 CREATE_API_KEY_SCHEMA = Schema({
     'username': str,
     'password': str,
+    'permanent': bool,
     'permissions': PermissionsListOfUser,
     })
 
@@ -95,6 +96,7 @@ CREATE_API_KEY_SCHEMA = Schema({
 @validate_data(CREATE_API_KEY_SCHEMA)
 def create_api_key(username: str = None,
                    password: str = None,
+                   permanent: bool = False,
                    permissions: List[str] = None) -> flask.Response:
     """
     Creates an API key for use. Keys are unrecoverable after generation;
@@ -110,7 +112,8 @@ def create_api_key(username: str = None,
 
        {
          "username": "lights",
-         "password": "12345"
+         "password": "12345",
+         "permanent": false
        }
 
     **Example response**:
@@ -146,6 +149,7 @@ def create_api_key(username: str = None,
         flask.g.user.id,
         flask.request.remote_addr,
         flask.request.user_agent.string,
+        permanent,
         permissions)
     return flask.jsonify({
         'hash': api_key.hash,
