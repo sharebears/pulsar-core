@@ -1,10 +1,11 @@
 import json
 
+from datetime import datetime, timedelta
 import flask
 import pytest
 
 from conftest import CODE_1, CODE_2, CODE_3, add_permissions, check_json_response
-from core import cache
+from core import cache, db
 from core.users.models import APIKey
 from core.utils import require_permission
 
@@ -171,6 +172,24 @@ def test_view_resource_with_api_key_restriction(app, client):
         'Authorization': f'Token abcdefghij{CODE_1}'})
     check_json_response(
         response, 'This APIKey does not have permission to access this resource.')
+
+
+def test_view_resource_with_expired_api_key(app, client):
+    ak = APIKey.from_pk('abcdefghij')
+    one_hour_ago = datetime.now() - timedelta(hours=1)
+    ak.last_used = one_hour_ago
+    db.session.commit()
+    assert ak.revoked is False
+
+    @app.route('/test_resource')
+    def test_permission():
+        return flask.jsonify('completed')
+
+    response = client.get('/test_resource', headers={
+        'Authorization': f'Token abcdefghij{CODE_1}'})
+    check_json_response(
+        response, 'Invalid authorization.')
+    assert APIKey.from_pk('abcdefghij', include_dead=True).revoked is True
 
 
 @pytest.mark.parametrize(

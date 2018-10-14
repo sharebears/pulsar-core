@@ -38,6 +38,12 @@ def check_api_key() -> None:
         # compared with the hash function.
         api_key = APIKey.from_pk(raw_key[:10])  # Implied active_only
         if api_key and api_key.check_key(raw_key[10:]) and not api_key.revoked:
+            if not api_key.permanent:
+                time_since = datetime.utcnow().replace(tzinfo=pytz.utc) - api_key.last_used
+                if time_since.total_seconds() > app.config['IMPERMANENT_API_KEY_LIFETIME']:
+                    api_key.revoked = True
+                    db.session.commit()
+                    raise _401Exception
             flask.g.user = User.from_pk(api_key.user_id)
             flask.g.api_key = api_key
             if flask.g.user.has_permission('no_ip_history'):

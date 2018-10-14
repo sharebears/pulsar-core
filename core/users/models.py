@@ -251,6 +251,7 @@ class APIKey(db.Model, SinglePKMixin):
     ip: str = db.Column(INET, nullable=False, server_default='0.0.0.0')
     user_agent: str = db.Column(db.Text)
     revoked: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
+    permanent: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
     permissions: str = db.Column(ARRAY(db.String(36)))
 
     @classmethod
@@ -258,6 +259,7 @@ class APIKey(db.Model, SinglePKMixin):
             user_id: int,
             ip: str,
             user_agent: str,
+            permanent: bool,
             permissions: List[str] = None) -> Tuple[str, 'APIKey']:
         """
         Create a new API Key with randomly generated secret keys and the
@@ -282,6 +284,7 @@ class APIKey(db.Model, SinglePKMixin):
             keyhashsalt=generate_password_hash(key),
             ip=ip,
             user_agent=user_agent,
+            permanent=permanent,
             permissions=permissions or [])
         return (hash + key, api_key)
 
