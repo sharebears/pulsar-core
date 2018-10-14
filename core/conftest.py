@@ -5,7 +5,10 @@ from contextlib import contextmanager
 from typing import Any, Callable, List
 
 import flask
-import pytest
+try:  # This gets imported by the real app runner... let it pass this.
+    import pytest
+except ImportError:
+    pass
 
 import core
 from core import cache, db

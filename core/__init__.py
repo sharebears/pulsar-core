@@ -31,15 +31,17 @@ def register_blueprints(app: flask.Flask) -> None:
     # If we register every module with the ``bp`` attribute normally,
     # we would have a lot of duplicate routes, which Werkzeug doesn't filter.
     for name in find_modules('core', recursive=True):
-        import_string(name)
+        if not name.endswith('conftest'):
+            import_string(name)
 
     # Now import and register each blueprint. Since each blueprint
     # is defined in the package's __init__, we scan packages this time,
     # unlike the last.
     for name in find_modules('core', include_packages=True):
-        mod = import_string(name)
-        if hasattr(mod, 'bp'):
-            app.register_blueprint(mod.bp)
+        if not name.endswith('conftest'):
+            mod = import_string(name)
+            if hasattr(mod, 'bp'):
+                app.register_blueprint(mod.bp)
 
     # print(app.url_map)  # debug
 
