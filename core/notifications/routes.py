@@ -12,12 +12,12 @@ from . import bp
 
 @bp.route('/notifications', methods=['GET'])
 @bp.route('/notifications/user/<int:user_id>', methods=['GET'])
-@require_permission('notifications_clear')
+@require_permission('notifications_view')
 def view_notifications(user_id: int = None):
     """
     View all pending notifications for a user. This includes thread subscriptions,
     collage notifications, torrent notifications, and inbox messages. Requires the
-    ``notifications_clear`` permission. Viewing the notifications of another user
+    ``notifications_view`` permission. Viewing the notifications of another user
     requires the ``notifications_view_others`` permission.
 
     .. :quickref: Notification; View unread notifications.
@@ -103,8 +103,8 @@ def view_notification_type(type: str,
     """
     user = choose_user(user_id, 'view_notifications_others')
     if type in TYPES:
-        return flask.jsonify(Notification.from_type(user.id, type))
-    raise APIException(f'{type} is not a valid notification type.')
+        return flask.jsonify(Notification.from_type(user.id, type, include_read=include_read))
+    raise APIException(f'{type} is not a valid notificaTion type.')
 
 
 @bp.route('/notifications/clear', methods=['PUT'])
@@ -143,13 +143,13 @@ def clear_notifications(type: str = None, user_id: int = None):
 
 
 MODIFY_NOTIFICATION_SCHEMA = Schema({
-    'read': BoolGET,
+    'read': bool,
     }, required=True)
 
 
 @bp.route('/notifications/<int:id>', methods=['PUT'])
-@validate_data(MODIFY_NOTIFICATION_SCHEMA)
 @require_permission('notifications_modify')
+@validate_data(MODIFY_NOTIFICATION_SCHEMA)
 def modify_notification(id: int, read: bool):
     """
     Change the read status of a notification. Requires the
@@ -171,9 +171,10 @@ def modify_notification(id: int, read: bool):
 
     :statuscode 200: Successfully modified notification.
     :statuscode 403: User does not have permission to modify notifications.
+    :statuscode 404: Notification does not exist.
     """
     noti = Notification.from_pk(id, asrt='notifications_modify_others', error=True)
     noti.read = read
     db.session.commit()
-    Notification.clear_cache_keys(noti.type)
+    Notification.clear_cache_keys(noti.user_id, noti.type)
     return flask.jsonify(f'Notification {id} marked as {"read" if read else "unread"}.')

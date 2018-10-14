@@ -64,7 +64,7 @@ class Notification(db.Model, SinglePKMixin):
     def get_pks_from_type(cls,
                           user_id: int,
                           type: str,
-                          include_read: bool):
+                          include_read: bool = False):
         filter = cls.user_id == user_id
         if type:
             filter = and_(filter, cls.type == type)
@@ -87,8 +87,8 @@ class Notification(db.Model, SinglePKMixin):
 
     @classmethod
     def clear_cache_keys(cls, user_id: int, type=None) -> None:
-        type = [type] or TYPES
+        types = [type] if type else TYPES
         cache.delete_many(*chain(*chain([(
             cls.__cache_key_notification_count__.format(user_id=user_id, type=t),
             cls.__cache_key_of_user__.format(user_id=user_id, type=t)
-            ) for t in type])))
+            ) for t in types])))
