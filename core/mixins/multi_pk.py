@@ -23,6 +23,9 @@ class MultiPKMixin(Model):
     def from_attrs(cls: Type[MPK], **kwargs: Union[str, int]) -> Optional[MPK]:
         """
         Get an instance of the model from its attributes.
+
+        :param kwargs: The attributes to query by
+        :return:       An object matching the attributes
         """
         return cls.query.filter(and_(*(
             getattr(cls, k) == v for k, v in kwargs.items()))).scalar()
@@ -33,7 +36,16 @@ class MultiPKMixin(Model):
                           column: InstrumentedAttribute,
                           key: str = None,
                           filter: BinaryExpression = None,
-                          order: BinaryExpression = None) -> List[int]:
+                          order: BinaryExpression = None) -> List[Any]:
+        """
+        Get the values of a specific column from every row in the database.
+
+        :param column: The desired column
+        :param key:    A cache key to save the resultant list in
+        :param filter: Filters to apply to the database query
+        :param order:  How to order the values from the database query
+        :return:       A list of values from the column
+        """
         values = cache.get(key) if key else None
         if values is None:
             query = cls._construct_query(db.session.query(column), filter, order)

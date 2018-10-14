@@ -20,7 +20,6 @@ class PermissionMixin(MultiPKMixin):
         Gets a dict of all custom permissions assigned to a user.
 
         :param user_id: User ID the permissions belong to
-
         :return:        Dict of permissions with the name as the
                         key and the ``granted`` value as the value
         """
