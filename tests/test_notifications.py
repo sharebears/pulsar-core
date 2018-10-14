@@ -136,14 +136,14 @@ def test_view_notification_of_nonexistent_type(app, authed_client):
 
 def test_clear_notifications(app, authed_client):
     add_permissions(app, 'notifications_modify')
-    assert authed_client.put('/notifications/clear').status_code == 200
+    assert authed_client.put('/notifications').status_code == 200
     n = Notification.get_all_unread(1)
     assert all(len(v) == 0 for v in n.values())
 
 
 def test_clear_notifications_type(app, authed_client):
     add_permissions(app, 'notifications_modify')
-    assert authed_client.put('/notifications/quote/clear').status_code == 200
+    assert authed_client.put('/notifications/quote').status_code == 200
     n = Notification.get_all_unread(1)
     assert len(n['quote']) == 0
     assert len(n['subscripple']) == 1
@@ -162,7 +162,7 @@ def test_modify_notification(app, authed_client):
     'endpoint, method', [
         ('/notifications', 'GET'),
         ('/notifications/type_1', 'GET'),
-        ('/notifications/clear', 'PUT'),
+        ('/notifications', 'PUT'),
         ('/notifications/1', 'PUT'),
     ])
 def test_route_permissions(authed_client, endpoint, method):

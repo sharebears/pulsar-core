@@ -107,10 +107,10 @@ def view_notification_type(type: str,
     raise APIException(f'{type} is not a valid notificaTion type.')
 
 
-@bp.route('/notifications/clear', methods=['PUT'])
-@bp.route('/notifications/<type>/clear', methods=['PUT'])
-@bp.route('/notifications/user/<int:user_id>/clear', methods=['PUT'])
-@bp.route('/notifications/<type>/user/<int:user_id>/clear', methods=['PUT'])
+@bp.route('/notifications', methods=['PUT'])
+@bp.route('/notifications/<type>', methods=['PUT'])
+@bp.route('/notifications/user/<int:user_id>', methods=['PUT'])
+@bp.route('/notifications/<type>/user/<int:user_id>', methods=['PUT'])
 @require_permission('notifications_modify')
 def clear_notifications(type: str = None, user_id: int = None):
     """
