@@ -251,6 +251,7 @@ class APIKey(db.Model, SinglePKMixin):
     ip: str = db.Column(INET, nullable=False, server_default='0.0.0.0')
     user_agent: str = db.Column(db.Text)
     revoked: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
+    permanent: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
     permissions: str = db.Column(ARRAY(db.String(36)))
 
     @classmethod
