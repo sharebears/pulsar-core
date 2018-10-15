@@ -1,5 +1,3 @@
-from typing import List
-
 import flask
 
 bp = flask.Blueprint('notifications', __name__)
@@ -10,5 +8,3 @@ PERMISSIONS = [
     'notifications_modify',
     'notifications_modify_others',
     ]
-
-TYPES: List[str] = []
