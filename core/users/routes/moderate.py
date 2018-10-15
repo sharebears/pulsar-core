@@ -8,7 +8,7 @@ from core import APIException, cache, db
 from core.permissions.models import UserPermission
 from core.users.models import User
 from core.utils import get_all_permissions, require_permission, validate_data
-from core.validators import (PASSWORD_REGEX, PermissionsDict, check_permissions)
+from core.validators import PASSWORD_REGEX, PermissionsDict, check_permissions
 
 from . import bp
 

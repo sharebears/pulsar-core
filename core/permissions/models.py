@@ -1,6 +1,6 @@
-from typing import List, Dict, Set
-import flask
+from typing import Dict, List, Set
 
+import flask
 from sqlalchemy import and_, select
 
 from core import db

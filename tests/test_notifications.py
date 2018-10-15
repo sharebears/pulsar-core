@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from core import db, cache, APIException
+from conftest import add_permissions, check_json_response
+from core import APIException, cache, db
 from core.notifications.models import Notification
-from conftest import check_json_response, add_permissions
 
 
 @pytest.fixture(autouse=True)

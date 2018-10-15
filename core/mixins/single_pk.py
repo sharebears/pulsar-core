@@ -198,7 +198,7 @@ class SinglePKMixin(Model):
 
         :return:                    A list of objects matching the query specifications
         """
-        extra_pks = []
+        extra_pks: List[Union[int, str]] = []
         if pks is None:
             pks = cls.get_pks_of_many(key, filter, order, include_dead, expr_override)
         if reverse:

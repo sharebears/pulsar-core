@@ -1,6 +1,6 @@
 import json
-
 from datetime import datetime, timedelta
+
 import flask
 import pytest
 

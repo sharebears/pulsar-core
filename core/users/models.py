@@ -142,7 +142,7 @@ class User(db.Model, SinglePKMixin):
 
     def has_permission(self, permission: Optional[str]) -> bool:
         """Check whether a user has a permission."""
-        return permission and permission in self.permissions
+        return bool(permission and permission in self.permissions)
 
 
 class Invite(db.Model, SinglePKMixin):

@@ -6,10 +6,9 @@ from voluptuous import Invalid
 
 from conftest import add_permissions, check_dupe_in_list, check_json_response
 from core import APIException, db
-from core.permissions.models import UserPermission
 from core.users.models import User
-from core.validators import (PermissionsDict, PermissionsList,
-                             PermissionsListOfUser, check_permissions)
+from core.validators import (PermissionsDict, PermissionsList, PermissionsListOfUser,
+                             check_permissions)
 
 
 def test_PermissionsList(app, authed_client):

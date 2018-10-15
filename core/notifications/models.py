@@ -6,7 +6,7 @@ import flask
 from sqlalchemy import and_, func
 from sqlalchemy.dialects.postgresql import JSONB
 
-from core import cache, db, APIException
+from core import APIException, cache, db
 from core.mixins import SinglePKMixin
 from core.notifications.serializers import NotificationSerializer
 from core.users.models import User
