@@ -115,7 +115,6 @@ def change_user_permissions(user: User,
             raise APIException(f'{p} is not a valid permission.')
     alter_permissions(user, to_add, to_ungrant, to_delete)
     cache.delete(user.__cache_key_permissions__.format(id=user.id))
-    cache.delete(user.__cache_key_permissions_forums__.format(id=user.id))
     user.del_property_cache('permissions')
 
 

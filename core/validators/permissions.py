@@ -87,8 +87,8 @@ class PermissionsDict:
 def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
                       permissions: Dict[str, bool]) -> Tuple[Set[str], Set[str], Set[str]]:
     """
-    The abstracted meat of the user and forum permission checkers. Takes the input
-    and some model-specific information and returns permission information.
+    The abstracted meat of the permission checkers. Takes the input and
+    some model-specific information and returns permission information.
 
     :param user:        The recipient of the permission changes
     :param permissions: A dictionary of permission changes, with permission name

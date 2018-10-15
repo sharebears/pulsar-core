@@ -16,7 +16,6 @@ from core.utils import cached_property
 
 if TYPE_CHECKING:
     from core.permissions.models import UserClass as UserClass_  # noqa
-    from core.forums.models import Forum as Forum_, ForumThread as ForumThread_ # noqa
 
 
 app = flask.current_app
@@ -27,7 +26,6 @@ class User(db.Model, SinglePKMixin):
     __serializer__ = UserSerializer
     __cache_key__ = 'users_{id}'
     __cache_key_permissions__ = 'users_{id}_permissions'
-    __cache_key_permissions_forums__ = 'users_{id}_permissions_forums'
 
     id: int = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String(32), unique=True, nullable=False)
@@ -123,10 +121,6 @@ class User(db.Model, SinglePKMixin):
         return permissions
 
     @cached_property
-    def forum_permissions(self) -> List[str]:
-        return {p for p in self.permissions if p.startswith('forumaccess')}
-
-    @cached_property
     def basic_permissions(self) -> List[str]:
         from core.permissions.models import UserPermission
         return [p for p in self.permissions if p in UserPermission.get_basic_permissions()]
@@ -147,9 +141,8 @@ class User(db.Model, SinglePKMixin):
         return check_password_hash(self.passhash, password)
 
     def has_permission(self, permission: Optional[str]) -> bool:
-        """Check whether a user has a permission. Includes regular and forum permissions."""
-        return (permission is not None
-                and permission in self.permissions.union(self.forum_permissions))
+        """Check whether a user has a permission."""
+        return permission and permission in self.permissions
 
 
 class Invite(db.Model, SinglePKMixin):

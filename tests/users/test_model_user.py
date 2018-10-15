@@ -100,9 +100,9 @@ def test_locked_account_permissions(app, client):
 
 
 def test_basic_permissions(app, client):
-    add_permissions(app, 'create_forum_posts', 'list_user_classes')
+    add_permissions(app, 'send_invites', 'list_user_classes')
     user = User.from_pk(1)
-    assert user.basic_permissions == ['create_forum_posts']
+    assert user.basic_permissions == ['send_invites']
 
 
 def test_locked_acc_perms_blocked(app, client):

@@ -15,7 +15,6 @@ class UserSerializer(Serializer):
     inviter = Attribute(permission='moderate_users', self_access=False, nested=False)
     api_keys = Attribute(permission='moderate_users', nested=False)
     basic_permissions = Attribute(permission='moderate_users', self_access=False, nested=False)
-    forum_permissions = Attribute(permission='moderate_users', nested=False)
     permissions = Attribute(permission='moderate_users_advanced', nested=False)
 
 
