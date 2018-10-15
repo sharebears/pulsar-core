@@ -14,6 +14,19 @@ db = SQLAlchemy(model_class=declarative_base(
     cls=Model, metaclass=CoreModel, name='CoreModel'))
 
 
+class Config:
+    REQUIRE_INVITE_CODE = True
+    INVITE_LIFETIME = 60 * 60 * 24 * 3  # 3 days
+    IMPERMANENT_API_KEY_LIFETIME = 60 * 30  # 30 minutes
+    RATE_LIMIT_AUTH_SPECIFIC = (50, 80)
+    RATE_LIMIT_PER_USER = (80, 80)
+    LOCKED_ACCOUNT_PERMISSIONS = {
+        'view_staff_pm',
+        'send_staff_pm',
+        'resolve_staff_pm',
+        }
+
+
 def init_app(app):
     db.init_app(app)
     cache.init_app(app)
