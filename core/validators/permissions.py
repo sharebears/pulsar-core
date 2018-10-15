@@ -75,8 +75,8 @@ class PermissionsDict:
             for perm_name, action in permissions.items():
                 if not isinstance(action, bool):
                     raise Invalid('permission actions must be booleans')
-                elif (action is False
-                      or not UserPermission.is_valid_permission(perm_name, permissioned)):
+                elif (not UserPermission.is_valid_permission(perm_name, permissioned)
+                      and not (permissioned and action is False)):
                     # Do not disallow removal of non-existent permissions.
                     raise Invalid(f'{perm_name} is not a valid permission')
         else:
@@ -130,7 +130,7 @@ def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
             message.append(f'The following permissions could not be added: '
                            f'{", ".join(errors["add"])}.')
         if 'delete' in errors:
-            message.append(f'The following permissionss could not be deleted: '
+            message.append(f'The following permissions could not be deleted: '
                            f'{", ".join(errors["delete"])}.')
         raise APIException(' '.join(message))
 

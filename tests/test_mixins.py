@@ -29,7 +29,7 @@ def test_delet_unavailable_property_from_cache_doesnt_blow_up(app, authed_client
     'data, result', [
         ('not-a-dict', False),
         ({'id': 1, 'name': 'User'}, False),
-        ({'id': 1, 'name': 'User', 'permissions': ['a-perm'], 'forum_permissions': None}, True),
+        ({'id': 1, 'name': 'User', 'permissions': ['a-perm']}, True),
         ({'id': 1, 'name': 'User', 'permissions': ['a-perm'], 'has_users': False}, False),
      ])
 def test_is_valid_data(app, client, data, result):

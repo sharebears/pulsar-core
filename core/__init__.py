@@ -25,6 +25,13 @@ class Config:
         'send_staff_pm',
         'resolve_staff_pm',
         }
+    # These are permissions which can be manipulated by users with basic
+    # user editing capibilities that do not have full permissioning powers.
+    BASIC_PERMISSIONS = [
+        'create_forum_posts',
+        'create_forum_threads',
+        'send_invites',
+    ]
 
 
 def init_app(app):

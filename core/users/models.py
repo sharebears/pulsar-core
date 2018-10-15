@@ -11,7 +11,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from core import APIException, cache, db
 from core.mixins import SinglePKMixin
-from core.permissions import BASIC_PERMISSIONS
 from core.users.serializers import APIKeySerializer, InviteSerializer, UserSerializer
 from core.utils import cached_property
 
@@ -92,23 +91,10 @@ class User(db.Model, SinglePKMixin):
 
     @cached_property
     def permissions(self) -> List[str]:
-        if self.locked:  # Locked accounts have restricted permissions.
-            return app.config['LOCKED_ACCOUNT_PERMISSIONS']
-        return self._get_permissions(
-            key=self.__cache_key_permissions__.format(id=self.id))
-
-    @cached_property
-    def forum_permissions(self) -> List[str]:  # TODO: REMOVE.
-        return self._get_permissions(
-            key=self.__cache_key_permissions_forums__.format(id=self.id),
-            prefix='forumaccess')
-
-    def _get_permissions(self,
-                         key: str,
-                         prefix: str = None) -> List[str]:
         """
         A general function to get the permissions of a user from a permission
-        model and attributes of their user classes.
+        model and attributes of their user classes. Locked users are restricted
+        to the permissions defined for them in the config.
 
         :param key:   The cache key to cache the permissions under
         :param model: The model to query custom permissions from
@@ -116,6 +102,10 @@ class User(db.Model, SinglePKMixin):
         """
         from core.permissions.models import SecondaryClass
         from core.permissions.models import UserPermission
+
+        if self.locked:  # Locked accounts have restricted permissions.
+            return app.config['LOCKED_ACCOUNT_PERMISSIONS']
+        key = self.__cache_key_permissions__.format(id=self.id)
         permissions = cache.get(key)
         if not permissions:
             permissions = copy(self.user_class_model.permissions)
@@ -129,15 +119,17 @@ class User(db.Model, SinglePKMixin):
                 if granted and perm not in permissions:
                     permissions.add(perm)
 
-            if prefix:
-                permissions = {p for p in permissions if p.startswith(prefix)}
-
             cache.set(key, permissions)
         return permissions
 
     @cached_property
+    def forum_permissions(self) -> List[str]:
+        return {p for p in self.permissions if p.startswith('forumaccess')}
+
+    @cached_property
     def basic_permissions(self) -> List[str]:
-        return [p for p in self.permissions if p in BASIC_PERMISSIONS]
+        from core.permissions.models import UserPermission
+        return [p for p in self.permissions if p in UserPermission.get_basic_permissions()]
 
     @cached_property
     def user_class_model(self) -> 'UserClass_':

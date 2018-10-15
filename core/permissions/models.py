@@ -54,10 +54,6 @@ class UserPermission(db.Model, MultiPKMixin):
     permission: str = db.Column(db.String(36), primary_key=True)
     granted: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='t')
 
-    @property
-    def basic_permissions(self):
-        return app.config['BASIC_PERMISSIONS']
-
     @classmethod
     def from_user(cls, user_id: int) -> Dict[str, bool]:
         """
@@ -83,24 +79,12 @@ class UserPermission(db.Model, MultiPKMixin):
             (cls.granted == 'f'))).all()}
 
     @classmethod
-    def from_prefix(cls,
-                    user_id: int,
-                    prefix: str) -> List[str]:
-        """
-        Get all permissions starting with the given prefix.
-
-        :param user_id: The UserID whose permissions to fetch
-        :param prefix:  The prefix to filter permissions with
-        :return:        A list of permission strings matching the prefix
-        """
-        return cls.query.filter(and_(
-            cls.user_id == user_id,
-            cls.permission.like(f'{prefix}%')
-            )).all()
-
-    @classmethod
     def is_valid_permission(cls,
                             permission: str,
                             permissioned: bool = True) -> bool:
-        permissions = get_all_permissions() if permissioned else cls.basic_permissions
+        permissions = get_all_permissions() if permissioned else cls.get_basic_permissions()
         return permission in permissions
+
+    @classmethod
+    def get_basic_permissions(cls):
+        return app.config['BASIC_PERMISSIONS']

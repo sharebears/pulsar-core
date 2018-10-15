@@ -20,7 +20,6 @@ class ClassSerializer(Serializer):
     id = Attribute()
     name = Attribute()
     permissions = Attribute(permission='modify_user_classes')
-    forum_permissions = Attribute(permission='modify_user_classes')
 
 
 class ClassMixin(SinglePKMixin):

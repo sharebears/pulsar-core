@@ -177,7 +177,6 @@ def test_serialize_detailed(app, authed_client):
         'invites': 1,
         'inviter': None,
         'basic_permissions': [],
-        'forum_permissions': [],
         })
     assert 'api_keys' in data and len(data['api_keys']) == 2
 
@@ -199,7 +198,6 @@ def test_serialize_very_detailed(app, authed_client):
         'invites': 1,
         'inviter': None,
         'basic_permissions': [],
-        'forum_permissions': [],
         })
     assert 'api_keys' in data and len(data['api_keys']) == 2
     assert 'permissions' in data and set(data['permissions']) == {
@@ -223,7 +221,6 @@ def test_serialize_nested(app, authed_client):
         'invites': 1,
         'api_keys': None,
         'basic_permissions': None,
-        'forum_permissions': None,
         'inviter': None,
         'permissions': None,
         }, strict=True)

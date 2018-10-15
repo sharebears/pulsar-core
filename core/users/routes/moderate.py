@@ -108,13 +108,12 @@ def change_user_permissions(user: User,
 
     :raises APIException: Invalid permissions to change
     """
-    to_add, to_ungrant, to_delete = check_permissions(
-        user, permissions, perm_model=UserPermission, perm_attr='permissions')
+    to_add, to_ungrant, to_delete = check_permissions(user, permissions)
     existing_permissions = get_all_permissions()
     for p in to_ungrant:
         if p not in existing_permissions:
             raise APIException(f'{p} is not a valid permission.')
-    alter_permissions(UserPermission, user, to_add, to_ungrant, to_delete)
+    alter_permissions(user, to_add, to_ungrant, to_delete)
     cache.delete(user.__cache_key_permissions__.format(id=user.id))
     cache.delete(user.__cache_key_permissions_forums__.format(id=user.id))
     user.del_property_cache('permissions')

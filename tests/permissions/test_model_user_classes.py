@@ -72,5 +72,4 @@ def test_serialize_user_class_detailed(app, authed_client):
         'id': 1,
         'name': 'User',
         'permissions': ['modify_permissions', 'edit_settings'],
-        'forum_permissions': [],
         }, strict=True)
