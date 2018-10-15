@@ -1,7 +1,7 @@
 from typing import List
 
 import flask
-from voluptuous import All, Length, Optional, Schema
+from voluptuous import Optional, Schema
 
 from core import APIException, _401Exception, db
 from core.users.models import APIKey, User
@@ -158,15 +158,9 @@ def create_api_key(username: str = None,
         })
 
 
-REVOKE_API_KEY_SCHEMA = Schema({
-    'hash': All(str, Length(min=10, max=10)),
-    }, required=True)
-
-
-@bp.route('/api_keys', methods=['DELETE'])
+@bp.route('/api_keys/<hash>', methods=['DELETE'])
 @require_permission('revoke_api_keys')
-@validate_data(REVOKE_API_KEY_SCHEMA)
-def revoke_api_key(hash: int) -> flask.Response:
+def revoke_api_key(hash: str) -> flask.Response:
     """
     Revokes an API key currently in use by the user. Requires the
     ``revoke_api_keys`` permission to revoke one's own API keys, and the
@@ -208,8 +202,8 @@ def revoke_api_key(hash: int) -> flask.Response:
     return flask.jsonify(f'APIKey {hash} has been revoked.')
 
 
-@bp.route('/api_keys/all', methods=['DELETE'])
-@bp.route('/api_keys/all/user/<int:user_id>', methods=['DELETE'])
+@bp.route('/api_keys', methods=['DELETE'])
+@bp.route('/api_keys/user/<int:user_id>', methods=['DELETE'])
 @require_permission('revoke_api_keys')
 def revoke_all_api_keys(user_id: int = None) -> flask.Response:
     """

@@ -19,8 +19,8 @@ SETTINGS_SCHEMA = Schema({
     })
 
 
-@bp.route('/settings', methods=['PUT'])
-@bp.route('/<int:user_id>/settings', methods=['PUT'])
+@bp.route('/users/settings', methods=['PUT'])
+@bp.route('/users/<int:user_id>/settings', methods=['PUT'])
 @require_permission('edit_settings')
 @validate_data(SETTINGS_SCHEMA)
 def edit_settings(user_id: int =None,
