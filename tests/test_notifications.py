@@ -2,26 +2,28 @@ import json
 
 import pytest
 
-from core import db, cache
-from core.notifications import TYPES
+from core import db, cache, _404Exception
 from core.notifications.models import Notification
 from conftest import check_json_response, add_permissions
-
-TYPES.append('subscripple')
-TYPES.append('quote')
-TYPES.append('unreal')
 
 
 @pytest.fixture(autouse=True)
 def populate_db(client):
     db.engine.execute(
-        """INSERT INTO notifications (id, user_id, type, contents, read) VALUES
-        (1, 1, 'subscripple', '{"contents": "A Subscribe!"}', 'f'),
-        (2, 2, 'quote', '{"contents": "A Quote!"}', 'f'),
-        (3, 1, 'quote', '{"contents": "A Quote!"}', 'f'),
-        (4, 1, 'quote', '{"contents": "Another Quote!"}', 't'),
-        (5, 2, 'unreal', '{"contents": "abcdef"}', 'f'),
-        (6, 1, 'unreal', '{"contents": "defgh"}', 't')
+        """INSERT INTO notifications_types (id, type) VALUES
+        (1, 'subscripple'),
+        (2, 'quote'),
+        (3, 'unreal')
+        """)
+    db.engine.execute("ALTER SEQUENCE notifications_types_id_seq RESTART WITH 4")
+    db.engine.execute(
+        """INSERT INTO notifications (id, user_id, type_id, contents, read) VALUES
+        (1, 1, 1, '{"contents": "A Subscribe!"}', 'f'),
+        (2, 2, 2, '{"contents": "A Quote!"}', 'f'),
+        (3, 1, 2, '{"contents": "A Quote!"}', 'f'),
+        (4, 1, 2, '{"contents": "Another Quote!"}', 't'),
+        (5, 2, 3, '{"contents": "abcdef"}', 'f'),
+        (6, 1, 3, '{"contents": "defgh"}', 't')
         """)
     db.engine.execute("ALTER SEQUENCE notifications_id_seq RESTART WITH 7")
 
@@ -33,6 +35,18 @@ def test_new_notification(client):
         contents={'contents': 'New Subscrippletion!'})
     assert noti.id == 7
     assert noti.contents['contents'] == 'New Subscrippletion!'
+    assert noti.read is False
+
+
+def test_new_notification_new_type(client):
+    noti = Notification.new(
+        user_id=1,
+        type='new_type',
+        contents={'contents': 'New Type!'})
+    assert noti.id == 7
+    assert noti.contents['contents'] == 'New Type!'
+    assert noti.type_id == 4
+    assert noti.type == 'new_type'
     assert noti.read is False
 
 
@@ -84,14 +98,14 @@ def test_get_pks_from_type(client):
 
 
 def test_clear_cache_keys(client):
-    ckey = Notification.__cache_key_notification_count__.format(user_id=1, type='subscripple')
+    ckey = Notification.__cache_key_notification_count__.format(user_id=1, type=1)
     cache.set(ckey, 100)
     Notification.clear_cache_keys(1, 'subscripple')
     assert not cache.has(ckey)
 
 
 def test_clear_cache_keys_without_type(client):
-    ckey = Notification.__cache_key_notification_count__.format(user_id=1, type='subscripple')
+    ckey = Notification.__cache_key_notification_count__.format(user_id=1, type=1)
     cache.set(ckey, 100)
     Notification.clear_cache_keys(1)
     assert not cache.has(ckey)
@@ -100,8 +114,8 @@ def test_clear_cache_keys_without_type(client):
 def test_clear_cache_keys_wrong_type(client):
     ckey = Notification.__cache_key_notification_count__.format(user_id=1, type='subscripple')
     cache.set(ckey, 100)
-    Notification.clear_cache_keys(1, 'not_real_type')
-    assert cache.get(ckey) == 100
+    with pytest.raises(_404Exception):
+        Notification.clear_cache_keys(1, 'not_real_type')
 
 
 def test_view_notifications(app, authed_client):
@@ -131,19 +145,21 @@ def test_view_notification_of_type_include_read(app, authed_client):
 
 def test_view_notification_of_nonexistent_type(app, authed_client):
     add_permissions(app, 'notifications_view')
-    assert authed_client.get('/notifications/notreal').status_code == 400
+    assert authed_client.get('/notifications/notreal').status_code == 404
 
 
 def test_clear_notifications(app, authed_client):
     add_permissions(app, 'notifications_modify')
-    assert authed_client.put('/notifications').status_code == 200
+    assert authed_client.put(
+        '/notifications', data=json.dumps({'read': True})).status_code == 200
     n = Notification.get_all_unread(1)
     assert all(len(v) == 0 for v in n.values())
 
 
 def test_clear_notifications_type(app, authed_client):
     add_permissions(app, 'notifications_modify')
-    assert authed_client.put('/notifications/quote').status_code == 200
+    assert authed_client.put(
+        '/notifications/quote', data=json.dumps({'read': True})).status_code == 200
     n = Notification.get_all_unread(1)
     assert len(n['quote']) == 0
     assert len(n['subscripple']) == 1

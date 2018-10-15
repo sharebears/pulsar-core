@@ -2,7 +2,6 @@ import flask
 from voluptuous import All, In, Range, Schema
 
 from core import APIException, db
-from core.notifications import TYPES
 from core.notifications.models import Notification
 from core.utils import choose_user, require_permission, validate_data
 from core.validators import BoolGET
@@ -102,9 +101,12 @@ def view_notification_type(type: str,
     :statuscode 403: User does not have access to view notifications.
     """
     user = choose_user(user_id, 'view_notifications_others')
-    if type in TYPES:
-        return flask.jsonify(Notification.from_type(user.id, type, include_read=include_read))
-    raise APIException(f'{type} is not a valid notificaTion type.')
+    return flask.jsonify(Notification.from_type(user.id, type, include_read=include_read))
+
+
+MODIFY_NOTIFICATION_SCHEMA = Schema({
+    'read': bool,
+    }, required=True)
 
 
 @bp.route('/notifications', methods=['PUT'])
@@ -112,7 +114,10 @@ def view_notification_type(type: str,
 @bp.route('/notifications/user/<int:user_id>', methods=['PUT'])
 @bp.route('/notifications/<type>/user/<int:user_id>', methods=['PUT'])
 @require_permission('notifications_modify')
-def clear_notifications(type: str = None, user_id: int = None):
+@validate_data(MODIFY_NOTIFICATION_SCHEMA)
+def clear_notifications(read: bool,
+                        type: str = None,
+                        user_id: int = None):
     """
     Clear a user's notifications; optionally of a specific type. Requires the
     ``notifications_modify`` permission. Clearing another user's notifications
@@ -134,17 +139,14 @@ def clear_notifications(type: str = None, user_id: int = None):
     :statuscode 200: Successfully cleared notifications.
     :statuscode 403: User does not have permission to clear notifications.
     """
+    if not read:
+        raise APIException('You cannot set all notifications to unread.')
     user = choose_user(user_id, 'notifications_modify_others')
     Notification.update_many(
         pks=Notification.get_pks_from_type(user.id, type, include_read=False),
         update={'read': True})
     Notification.clear_cache_keys(user.id)
     return flask.jsonify(f'{"All" if not type else type} notifications cleared.')
-
-
-MODIFY_NOTIFICATION_SCHEMA = Schema({
-    'read': bool,
-    }, required=True)
 
 
 @bp.route('/notifications/<int:id>', methods=['PUT'])
