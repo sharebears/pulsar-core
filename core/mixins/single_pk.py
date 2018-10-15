@@ -161,7 +161,7 @@ class SinglePKMixin(Model):
                  include_dead: bool = False,
                  asrt: str = None,
                  page: int = None,
-                 limit: int = 50,
+                 limit: Optional[int] = 50,
                  reverse: bool = False,
                  pks: List[Union[int, str]] = None,
                  expr_override: BinaryExpression = None) -> List[MDL]:
@@ -198,16 +198,17 @@ class SinglePKMixin(Model):
 
         :return:                    A list of objects matching the query specifications
         """
+        extra_pks = []
         if pks is None:
             pks = cls.get_pks_of_many(key, filter, order, include_dead, expr_override)
         if reverse:
             pks.reverse()
-        if page is not None:
+        if page is not None and limit is not None:
             all_next_pks = pks[(page - 1) * limit:]
             pks, extra_pks = all_next_pks[:limit], all_next_pks[limit:]
 
         models: List[MDL] = []
-        while len(models) < limit:
+        while not limit or len(models) < limit:
             if pks:
                 cls.populate_models_from_pks(models, pks, filter)
 
@@ -218,7 +219,7 @@ class SinglePKMixin(Model):
                     getattr(m, rp, False) for rp in required_properties)]
 
             # End pagination loop and return models.
-            if not page or not extra_pks:
+            if limit is None or page or not extra_pks:
                 break
             pks = extra_pks[:abs(limit - len(models))]
             extra_pks = extra_pks[abs(limit - len(models)):]
