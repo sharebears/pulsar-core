@@ -4,7 +4,7 @@ import pytest
 
 from conftest import add_permissions, check_json_response
 from core import db
-from core.permissions.models import ForumPermission, UserPermission
+from core.permissions.models import UserPermission
 from core.users.models import User
 
 
@@ -135,7 +135,7 @@ def test_change_forum_permissions(app, authed_client):
     assert set(response['response']['forum_permissions']) == {
         'forums_forums_permission_1', 'forums_threads_permission_2'}
 
-    f_perms = ForumPermission.from_user(1)
+    f_perms = UserPermission.from_user(1)
     assert f_perms == {
         'forums_forums_permission_2': False,
         'forums_forums_permission_1': True,
@@ -160,7 +160,7 @@ def test_change_forum_permissions_failure(app, authed_client):
     check_json_response(
         response, 'The following ForumPermissions could not be added: forums_forums_permission_2. '
         'The following ForumPermissions could not be deleted: forums_threads_permission_4.')
-    f_perms = ForumPermission.from_user(1)
+    f_perms = UserPermission.from_user(1)
     assert f_perms == {'forums_threads_permission_1': True}
 
 

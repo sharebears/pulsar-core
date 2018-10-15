@@ -8,7 +8,7 @@ from conftest import add_permissions, check_dupe_in_list, check_json_response
 from core import APIException, db
 from core.permissions.models import UserPermission
 from core.users.models import User
-from core.validators import (ForumPermissionsDict, PermissionsDict, PermissionsList,
+from core.validators import (PermissionsDict, PermissionsList,
                              PermissionsListOfUser, check_permissions)
 
 
@@ -90,7 +90,7 @@ def test_forum_permission_dict():
         'forums_forums_permission_1': True,
         'forums_threads_permission_1': False
         }
-    assert data == ForumPermissionsDict(data)
+    assert data == PermissionsDict(data)
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ def test_forum_permission_dict():
     ])
 def test_forum_permission_dict_failure(value):
     with pytest.raises(Invalid):
-        ForumPermissionsDict(value)
+        PermissionsDict(value)
 
 
 @pytest.mark.parametrize(

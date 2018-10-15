@@ -1,18 +1,13 @@
-import re
 from collections import defaultdict
-from typing import Dict, List, Set, Tuple, Type, Union
+from typing import Dict, List, Set, Tuple
 
 import flask
 from voluptuous import Invalid
 
 from core import APIException
-from core.permissions import BASIC_PERMISSIONS
-from core.permissions.models import ForumPermission, SecondaryClass, UserPermission
+from core.permissions.models import SecondaryClass, UserPermission
 from core.users.models import User
 from core.utils import get_all_permissions
-
-FORUM_PERMISSION = re.compile(r'forums_forums_permission_\d+')
-THREAD_PERMISSION = re.compile(r'forums_threads_permission_\d+')
 
 
 def PermissionsList(perm_list: List[str]) -> List[str]:
@@ -76,13 +71,12 @@ class PermissionsDict:
         :raises Invalid:       A permission name is invalid or a value isn't a bool
         """
         permissioned = self.restrict is None or flask.g.user.has_permission(self.restrict)
-        all_permissions = get_all_permissions() if permissioned else BASIC_PERMISSIONS
-
         if isinstance(permissions, dict):
             for perm_name, action in permissions.items():
                 if not isinstance(action, bool):
                     raise Invalid('permission actions must be booleans')
-                elif perm_name not in all_permissions and (action is True or not permissioned):
+                elif (action is False
+                      or not UserPermission.is_valid_permission(perm_name, permissioned)):
                     # Do not disallow removal of non-existent permissions.
                     raise Invalid(f'{perm_name} is not a valid permission')
         else:
@@ -90,31 +84,8 @@ class PermissionsDict:
         return permissions
 
 
-def ForumPermissionsDict(value):
-    """
-    Validate that the dictionary contains valid forum permissions as keys and
-    booleans as the values.
-
-    :param value:   The input dictionary to validate
-
-    :return:        The input value
-    :raise Invalid: If the input dictionary is not valid
-    """
-    if isinstance(value, dict):
-        for key, val in value.items():
-            if not (isinstance(key, str) and isinstance(val, bool) and (
-                    FORUM_PERMISSION.match(key) or THREAD_PERMISSION.match(key))):
-                break
-        else:
-            return value
-    raise Invalid('data must be a dict with valid forums permission keys and boolean values')
-
-
 def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
-                      permissions: Dict[str, bool],
-                      perm_model: Union[Type[UserPermission], Type[ForumPermission]],
-                      perm_attr: str
-                      ) -> Tuple[Set[str], Set[str], Set[str]]:
+                      permissions: Dict[str, bool]) -> Tuple[Set[str], Set[str], Set[str]]:
     """
     The abstracted meat of the user and forum permission checkers. Takes the input
     and some model-specific information and returns permission information.
@@ -130,10 +101,10 @@ def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
     delete: Set[str] = set()
     errors: Dict[str, Set[str]] = defaultdict(set)
 
-    uc_permissions: Set[str] = set(getattr(user.user_class_model, perm_attr))
+    uc_permissions: Set[str] = set(user.user_class_model.permissions)
     for class_ in SecondaryClass.from_user(user.id):
-        uc_permissions |= set(getattr(class_, perm_attr))
-    custom_permissions: Dict[str, bool] = perm_model.from_user(user.id)
+        uc_permissions |= set(class_.permissions)
+    custom_permissions: Dict[str, bool] = UserPermission.from_user(user.id)
 
     for perm, active in permissions.items():
         if active is True:
@@ -156,10 +127,10 @@ def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
     if errors:
         message = []
         if 'add' in errors:
-            message.append(f'The following {perm_model.__name__}s could not be added: '
+            message.append(f'The following permissions could not be added: '
                            f'{", ".join(errors["add"])}.')
         if 'delete' in errors:
-            message.append(f'The following {perm_model.__name__}s could not be deleted: '
+            message.append(f'The following permissionss could not be deleted: '
                            f'{", ".join(errors["delete"])}.')
         raise APIException(' '.join(message))
 

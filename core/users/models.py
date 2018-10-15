@@ -28,6 +28,7 @@ class User(db.Model, SinglePKMixin):
     __serializer__ = UserSerializer
     __cache_key__ = 'users_{id}'
     __cache_key_permissions__ = 'users_{id}_permissions'
+    __cache_key_permissions_forums__ = 'users_{id}_permissions_forums'
 
     id: int = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String(32), unique=True, nullable=False)
@@ -93,24 +94,18 @@ class User(db.Model, SinglePKMixin):
     def permissions(self) -> List[str]:
         if self.locked:  # Locked accounts have restricted permissions.
             return app.config['LOCKED_ACCOUNT_PERMISSIONS']
-        from core.permissions.models import UserPermission
         return self._get_permissions(
-            key=self.__cache_key_permissions__.format(id=self.id),
-            model=UserPermission,
-            attr='permissions')
+            key=self.__cache_key_permissions__.format(id=self.id))
 
     @cached_property
     def forum_permissions(self) -> List[str]:  # TODO: REMOVE.
-        from core.permissions.models import ForumPermission
         return self._get_permissions(
-            key='',
-            model=ForumPermission,
-            attr='forum_permissions')
+            key=self.__cache_key_permissions_forums__.format(id=self.id),
+            prefix='forumaccess')
 
     def _get_permissions(self,
                          key: str,
-                         model: db.Model,
-                         attr: str) -> List[str]:
+                         prefix: str = None) -> List[str]:
         """
         A general function to get the permissions of a user from a permission
         model and attributes of their user classes.
@@ -120,18 +115,22 @@ class User(db.Model, SinglePKMixin):
         :param attr:  The attribute of the userclasses that should be queried
         """
         from core.permissions.models import SecondaryClass
+        from core.permissions.models import UserPermission
         permissions = cache.get(key)
         if not permissions:
-            permissions = copy(getattr(self.user_class_model, attr))
+            permissions = copy(self.user_class_model.permissions)
             for class_ in SecondaryClass.from_user(self.id):
-                permissions += getattr(class_, attr)
+                permissions += class_.permissions
             permissions = set(permissions)  # De-dupe
 
-            for perm, granted in model.from_user(self.id).items():
+            for perm, granted in UserPermission.from_user(self.id).items():
                 if not granted and perm in permissions:
                     permissions.remove(perm)
                 if granted and perm not in permissions:
                     permissions.add(perm)
+
+            if prefix:
+                permissions = {p for p in permissions if p.startswith(prefix)}
 
             cache.set(key, permissions)
         return permissions

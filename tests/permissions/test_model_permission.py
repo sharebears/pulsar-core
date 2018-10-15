@@ -18,6 +18,15 @@ def test_permissions_from_user(app, client):
     }
 
 
+def test_permissions_from_prefix(app, client):
+    add_permissions(app, 'perm_one', 'perm_two', 'non_prefixed')
+    db.engine.execute("""INSERT INTO users_permissions (user_id, permission, granted)
+                      VALUES (2, 'perm_three', 't')""")
+    perms = UserPermission.from_prefix(1, 'perm')
+    assert len(perms) == 2
+    assert set(perms) == {'perm_one', 'perm_two'}
+
+
 def test_user_class_permission_override(app, authed_client):
     db.engine.execute("""UPDATE user_classes SET permissions = '{"sample_a", "sample_b"}'""")
     db.engine.execute("""UPDATE secondary_classes SET permissions = '{"sample_e"}'""")

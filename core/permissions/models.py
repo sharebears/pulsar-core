@@ -1,10 +1,14 @@
-from typing import List
+from typing import List, Dict, Set
+import flask
 
 from sqlalchemy import and_, select
 
 from core import db
-from core.mixins import ClassMixin, PermissionMixin
+from core.mixins import ClassMixin, MultiPKMixin
 from core.users.models import User
+from core.utils import get_all_permissions
+
+app = flask.current_app
 
 
 class UserClass(db.Model, ClassMixin):
@@ -43,16 +47,60 @@ secondary_class_assoc_table = db.Table(
               nullable=False))
 
 
-class UserPermission(db.Model, PermissionMixin):
+class UserPermission(db.Model, MultiPKMixin):
     __tablename__ = 'users_permissions'
 
+    user_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    permission: str = db.Column(db.String(36), primary_key=True)
+    granted: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='t')
 
-class ForumPermission(db.Model, PermissionMixin):
-    __tablename__ = 'forums_permissions'
-    # TODO: Cache key
+    @property
+    def basic_permissions(self):
+        return app.config['BASIC_PERMISSIONS']
 
     @classmethod
-    def get_ungranted_from_user(cls, user_id):
+    def from_user(cls, user_id: int) -> Dict[str, bool]:
+        """
+        Gets a dict of all custom permissions assigned to a user.
+
+        :param user_id: User ID the permissions belong to
+        :return:        Dict of permissions with the name as the
+                        key and the ``granted`` value as the value
+        """
+        return {p.permission: p.granted for p in cls.query.filter(  # type: ignore
+                    cls.user_id == user_id).all()}
+
+    @classmethod
+    def get_ungranted_from_user(cls, user_id: int) -> Set[str]:
+        """
+        Get all ungranted permission for a user.
+
+        :param user_id: User ID to get the ungranted permission for
+        :return:        A set of permissions
+        """
         return {p.permission for p in cls.query.filter(and_(
             (cls.user_id == user_id),
             (cls.granted == 'f'))).all()}
+
+    @classmethod
+    def from_prefix(cls,
+                    user_id: int,
+                    prefix: str) -> List[str]:
+        """
+        Get all permissions starting with the given prefix.
+
+        :param user_id: The UserID whose permissions to fetch
+        :param prefix:  The prefix to filter permissions with
+        :return:        A list of permission strings matching the prefix
+        """
+        return cls.query.filter(and_(
+            cls.user_id == user_id,
+            cls.permission.like(f'{prefix}%')
+            )).all()
+
+    @classmethod
+    def is_valid_permission(cls,
+                            permission: str,
+                            permissioned: bool = True) -> bool:
+        permissions = get_all_permissions() if permissioned else cls.basic_permissions
+        return permission in permissions
