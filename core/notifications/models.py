@@ -1,6 +1,6 @@
 from datetime import datetime
 from itertools import chain
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import flask
 from sqlalchemy import and_, func
@@ -10,6 +10,7 @@ from core import cache, db
 from core.mixins import SinglePKMixin
 from core.notifications import TYPES
 from core.notifications.serializers import NotificationSerializer
+from core.users.models import User
 
 app = flask.current_app
 
@@ -39,8 +40,13 @@ class Notification(db.Model, SinglePKMixin):
     def new(cls,
             user_id: int,
             type: str,
-            contents: str) -> 'Notification':
-        return super()._new(user_id=user_id, type=type, contents=contents)
+            contents: Dict[str, Union[Dict, str]]) -> 'Notification':
+        User.is_valid(user_id, error=True)
+        noti_type = NotificationType.from_type(type)
+        return super()._new(
+            user_id=user_id,
+            type_id=noti_type.id,
+            contents=contents)
 
     @classmethod
     def get_all_unread(cls,
@@ -109,7 +115,7 @@ class NotificationType(SinglePKMixin):
     type: str = db.Column(db.String, nullable=False, unique=True, index=True)
 
     @classmethod
-    def get_id_of_type(cls, type: str) -> 'NotificationType':
+    def from_type(cls, type: str) -> 'NotificationType':
         """
         Get the ID of the notification type, and if the type is not in the database,
         add it and return the new ID.
@@ -121,16 +127,6 @@ class NotificationType(SinglePKMixin):
             key=cls.__cache_key_id_of_type__.format(type=type),
             filter=cls.type == type
             ) or cls._new(type=type)
-
-    @classmethod
-    def get_type_of_id(cls, id: int) -> 'NotificationType':
-        """
-        Get a notification type from the database given an ID.
-
-        :param id: The notification ID
-        :return:   The corresponding notification type
-        """
-        return cls.from_pk(id)
 
     @classmethod
     def get_all_types(cls) -> List['NotificationType']:
