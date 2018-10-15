@@ -11,13 +11,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from core import APIException, cache, db
 from core.mixins import SinglePKMixin
-from core.permissions import BASIC_PERMISSIONS
 from core.users.serializers import APIKeySerializer, InviteSerializer, UserSerializer
 from core.utils import cached_property
 
 if TYPE_CHECKING:
     from core.permissions.models import UserClass as UserClass_  # noqa
-    from core.forums.models import Forum as Forum_, ForumThread as ForumThread_ # noqa
 
 
 app = flask.current_app
@@ -91,43 +89,29 @@ class User(db.Model, SinglePKMixin):
 
     @cached_property
     def permissions(self) -> List[str]:
-        if self.locked:  # Locked accounts have restricted permissions.
-            return app.config['LOCKED_ACCOUNT_PERMISSIONS']
-        from core.permissions.models import UserPermission
-        return self._get_permissions(
-            key=self.__cache_key_permissions__.format(id=self.id),
-            model=UserPermission,
-            attr='permissions')
-
-    @cached_property
-    def forum_permissions(self) -> List[str]:  # TODO: REMOVE.
-        from core.permissions.models import ForumPermission
-        return self._get_permissions(
-            key='',
-            model=ForumPermission,
-            attr='forum_permissions')
-
-    def _get_permissions(self,
-                         key: str,
-                         model: db.Model,
-                         attr: str) -> List[str]:
         """
         A general function to get the permissions of a user from a permission
-        model and attributes of their user classes.
+        model and attributes of their user classes. Locked users are restricted
+        to the permissions defined for them in the config.
 
         :param key:   The cache key to cache the permissions under
         :param model: The model to query custom permissions from
         :param attr:  The attribute of the userclasses that should be queried
         """
         from core.permissions.models import SecondaryClass
+        from core.permissions.models import UserPermission
+
+        if self.locked:  # Locked accounts have restricted permissions.
+            return app.config['LOCKED_ACCOUNT_PERMISSIONS']
+        key = self.__cache_key_permissions__.format(id=self.id)
         permissions = cache.get(key)
         if not permissions:
-            permissions = copy(getattr(self.user_class_model, attr))
+            permissions = copy(self.user_class_model.permissions)
             for class_ in SecondaryClass.from_user(self.id):
-                permissions += getattr(class_, attr)
+                permissions += class_.permissions
             permissions = set(permissions)  # De-dupe
 
-            for perm, granted in model.from_user(self.id).items():
+            for perm, granted in UserPermission.from_user(self.id).items():
                 if not granted and perm in permissions:
                     permissions.remove(perm)
                 if granted and perm not in permissions:
@@ -138,7 +122,8 @@ class User(db.Model, SinglePKMixin):
 
     @cached_property
     def basic_permissions(self) -> List[str]:
-        return [p for p in self.permissions if p in BASIC_PERMISSIONS]
+        from core.permissions.models import UserPermission
+        return [p for p in self.permissions if p in UserPermission.get_basic_permissions()]
 
     @cached_property
     def user_class_model(self) -> 'UserClass_':
@@ -156,9 +141,8 @@ class User(db.Model, SinglePKMixin):
         return check_password_hash(self.passhash, password)
 
     def has_permission(self, permission: Optional[str]) -> bool:
-        """Check whether a user has a permission. Includes regular and forum permissions."""
-        return (permission is not None
-                and permission in self.permissions.union(self.forum_permissions))
+        """Check whether a user has a permission."""
+        return permission and permission in self.permissions
 
 
 class Invite(db.Model, SinglePKMixin):

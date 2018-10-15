@@ -1,15 +1,14 @@
-from typing import Dict, Set, Type, Union
+from typing import Dict, Set
 
 import flask
 from voluptuous import All, Email, Range, Schema
 from voluptuous.validators import Match
 
 from core import APIException, cache, db
-from core.permissions.models import ForumPermission, UserPermission
+from core.permissions.models import UserPermission
 from core.users.models import User
 from core.utils import get_all_permissions, require_permission, validate_data
-from core.validators import (PASSWORD_REGEX, ForumPermissionsDict, PermissionsDict,
-                             check_permissions)
+from core.validators import (PASSWORD_REGEX, PermissionsDict, check_permissions)
 
 from . import bp
 
@@ -24,7 +23,6 @@ MODERATE_USER_SCHEMA = Schema({
     'downloaded': All(int, Range(min=0, max=9223372036854775808)),
     'invites': All(int, Range(min=0, max=2147483648)),
     'permissions': PermissionsDict(restrict='moderate_users_advanced'),
-    'forum_permissions': ForumPermissionsDict,
     })
 
 
@@ -37,8 +35,7 @@ def moderate_user(user_id: int,
                   uploaded: int = None,
                   downloaded: int = None,
                   invites: int = None,
-                  permissions: Dict[str, bool] = None,
-                  forum_permissions: Dict[str, bool] = None) -> flask.Response:
+                  permissions: Dict[str, bool] = None) -> flask.Response:
     """
     Moderate a user - change password for them, alter stats, modify basic permissions,
     etc.
@@ -89,8 +86,6 @@ def moderate_user(user_id: int,
         user.invites = invites
     if permissions:
         change_user_permissions(user, permissions)
-    if forum_permissions:
-        change_forum_permissions(user, forum_permissions)
 
     db.session.commit()
     return flask.jsonify(user)
@@ -113,43 +108,17 @@ def change_user_permissions(user: User,
 
     :raises APIException: Invalid permissions to change
     """
-    to_add, to_ungrant, to_delete = check_permissions(
-        user, permissions, perm_model=UserPermission, perm_attr='permissions')
+    to_add, to_ungrant, to_delete = check_permissions(user, permissions)
     existing_permissions = get_all_permissions()
     for p in to_ungrant:
         if p not in existing_permissions:
             raise APIException(f'{p} is not a valid permission.')
-    alter_permissions(UserPermission, user, to_add, to_ungrant, to_delete)
+    alter_permissions(user, to_add, to_ungrant, to_delete)
     cache.delete(user.__cache_key_permissions__.format(id=user.id))
     user.del_property_cache('permissions')
 
 
-def change_forum_permissions(user: User,
-                             permissions: Dict[str, bool]) -> None:
-    """
-    Change the forum permissions belonging to a user. Permissions can be
-    added to a user, deleted from a user, and ungranted from a user.
-    Adding a permission occurs when the user does not have the specified
-    permission, through custom or userclass. There are two types of permission
-    removal: deletion and ungranting. Deletion ocrurs when the user has the
-    permission through custom, while ungranting occurs when the user has the
-    permission through userclass. If they have both custom and userclass, they
-    will lose both.
-
-    :param user:          The user to change permissions for
-    :param permissions:   The forum permissions to change
-
-    :raises APIException: Invalid forum permissions to change
-    """
-    to_add, to_ungrant, to_delete = check_permissions(
-        user, permissions, perm_model=ForumPermission, perm_attr='forum_permissions')
-    alter_permissions(ForumPermission, user, to_add, to_ungrant, to_delete)
-    cache.delete(user.__cache_key_forum_permissions__.format(id=user.id))
-    user.del_property_cache('forum_permissions')
-
-
-def alter_permissions(perm_model: Union[Type[ForumPermission], Type[UserPermission]],
-                      user: User,
+def alter_permissions(user: User,
                       to_add: Set[str],
                       to_ungrant: Set[str],
                       to_delete: Set[str]) -> None:
@@ -164,17 +133,17 @@ def alter_permissions(perm_model: Union[Type[ForumPermission], Type[UserPermissi
     :param to_delete:  The permissions to delete
     """
     for permission in to_delete:
-        model: Union[ForumPermission, UserPermission] = perm_model.from_attrs(
+        model = UserPermission.from_attrs(
             user_id=user.id,
             permission=permission)
         db.session.delete(model)
     db.session.commit()
     for perm_name in to_add:
-        db.session.add(perm_model(
+        db.session.add(UserPermission(
             user_id=user.id,
             permission=perm_name))
     for perm_name in to_ungrant:
-        db.session.add(perm_model(
+        db.session.add(UserPermission(
             user_id=user.id,
             permission=perm_name,
             granted=False))

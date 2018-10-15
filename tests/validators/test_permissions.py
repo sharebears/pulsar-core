@@ -8,7 +8,7 @@ from conftest import add_permissions, check_dupe_in_list, check_json_response
 from core import APIException, db
 from core.permissions.models import UserPermission
 from core.users.models import User
-from core.validators import (ForumPermissionsDict, PermissionsDict, PermissionsList,
+from core.validators import (PermissionsDict, PermissionsList,
                              PermissionsListOfUser, check_permissions)
 
 
@@ -66,7 +66,7 @@ def test_PermissionsDict():
     permissions = {
         'modify_permissions': True,
         'view_invites': True,
-        'shit_fake_perm': False,
+        'fake_perm': False,
     }
     assert permissions == PermissionsDict().__call__(permissions)
 
@@ -83,26 +83,6 @@ def test_PermissionsDict_failure(permissions, expected):
     with pytest.raises(Invalid) as e:
         PermissionsDict().__call__(permissions)
     assert str(e.value) == expected
-
-
-def test_forum_permission_dict():
-    data = {
-        'forums_forums_permission_1': True,
-        'forums_threads_permission_1': False
-        }
-    assert data == ForumPermissionsDict(data)
-
-
-@pytest.mark.parametrize(
-    'value', [
-        {'forums_forums_permixsion_1': True},
-        {'forums_forums_permission_1': 'False'},
-        {'forums_threads_permission_a': True},
-        'not-a-dict',
-    ])
-def test_forum_permission_dict_failure(value):
-    with pytest.raises(Invalid):
-        ForumPermissionsDict(value)
 
 
 @pytest.mark.parametrize(
@@ -139,8 +119,7 @@ def test_check_permission(app, authed_client, permissions, expected):
                       WHERE name = 'User'""")
     db.engine.execute("""UPDATE secondary_classes SET permissions = '{"shared_perm"}'
                       WHERE name = 'FLS'""")
-    add, ungrant, delete = check_permissions(
-        User.from_pk(1), permissions, UserPermission, 'permissions')
+    add, ungrant, delete = check_permissions(User.from_pk(1), permissions)
     for li in [add, ungrant, delete]:
         check_dupe_in_list(li)
     assert set(add) == set(expected['add'])
@@ -164,5 +143,5 @@ def test_check_permission_error(app, authed_client, permissions, error):
                       SET permissions = '{"sample_four", "sample_five"}'
                       WHERE name = 'User'""")
     with pytest.raises(APIException) as e:
-        check_permissions(User.from_pk(1), permissions, UserPermission, 'permissions')
+        check_permissions(User.from_pk(1), permissions)
     assert all(w in e.value.message for w in error)

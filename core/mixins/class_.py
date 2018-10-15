@@ -20,18 +20,14 @@ class ClassSerializer(Serializer):
     id = Attribute()
     name = Attribute()
     permissions = Attribute(permission='modify_user_classes')
-    forum_permissions = Attribute(permission='modify_user_classes')
 
 
 class ClassMixin(SinglePKMixin):
-
     __serializer__ = ClassSerializer
 
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(24), nullable=False)
     permissions: List[str] = db.Column(ARRAY(db.String(36)), nullable=False, server_default='{}')
-    forum_permissions: List[str] = db.Column(  # noqa: E701
-        ARRAY(db.String(36)), nullable=False, server_default='{}')
 
     @declared_attr
     def __table_args__(cls):

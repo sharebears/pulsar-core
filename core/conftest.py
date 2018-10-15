@@ -12,13 +12,17 @@ from core import cache, db
 from core.users.models import User
 
 UNPOPULATE_FUNCTIONS: List[Callable] = []
-PLUGINS: List[Any] = []
+PLUGINS: List[Any] = [core]
 
 
 def create_app():
+
+    class Config(*(plug.Config for plug in PLUGINS if hasattr(plug, 'Config'))):
+        pass
+
     app = flask.Flask(__name__)
+    app.config.from_object(Config)
     app.config.from_pyfile('../tests/test_config.py')
-    core.init_app(app)
     for plugin in PLUGINS:
         plugin.init_app(app)
     return app
@@ -70,11 +74,11 @@ def check_dictionary(response, expected, list_=False, strict=False):
                 assert key in response and value == response[key]
 
 
-def add_permissions(app_, *permissions, table='users_permissions'):
+def add_permissions(app_, *permissions):
     "Insert permissions into database for user_id 1 (authed user)."
     assert isinstance(app_, flask.Flask)
     db.engine.execute(
-        f"""INSERT INTO {table} (user_id, permission) VALUES
+        f"""INSERT INTO users_permissions (user_id, permission) VALUES
         (1, '""" + "'), (1, '".join(permissions) + "')")
 
 
@@ -167,7 +171,6 @@ def unpopulate_db():
     db.engine.execute("DELETE FROM notifications")
     db.engine.execute("DELETE FROM notifications_types")
     db.engine.execute("DELETE FROM secondary_class_assoc")
-    db.engine.execute("DELETE FROM forums_permissions")
     db.engine.execute("DELETE FROM users_permissions")
     db.engine.execute("DELETE FROM api_keys")
     db.engine.execute("DELETE FROM invites")
