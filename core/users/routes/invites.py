@@ -11,14 +11,8 @@ from . import bp
 app = flask.current_app
 
 
-VIEW_INVITE_SCHEMA = Schema({
-    'code': str,
-    }, required=True)
-
-
-@bp.route('/invite', methods=['GET'])
+@bp.route('/invites/<code>', methods=['GET'])
 @require_permission('view_invites')
-@validate_data(VIEW_INVITE_SCHEMA)
 def view_invite(code: str) -> flask.Response:
     """
     View the details of an invite. Requires the ``view_invites`` permission.
@@ -158,9 +152,8 @@ def invite_user(email: str):
     return flask.jsonify(invite)
 
 
-@bp.route('/invite', methods=['DELETE'])
+@bp.route('/invites/<code>', methods=['DELETE'])
 @require_permission('revoke_invites')
-@validate_data(VIEW_INVITE_SCHEMA)
 def revoke_invite(code: str) -> flask.Response:
     """
     Revokes an active invite code, preventing it from being used. The
