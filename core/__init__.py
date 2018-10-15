@@ -1,17 +1,13 @@
 import flask
 from flask_sqlalchemy import SQLAlchemy, event
-from flask_sqlalchemy.model import Model
-from sqlalchemy.ext.declarative import declarative_base
 from werkzeug import find_modules, import_string
 
 from core.cache import cache, clear_cache_dirty
 from core.exceptions import (APIException, _312Exception, _401Exception,  # noqa
                              _403Exception, _404Exception, _405Exception, _500Exception)
-from core.model_base import CoreModel
 from core.serializer import NewJSONEncoder
 
-db = SQLAlchemy(model_class=declarative_base(
-    cls=Model, metaclass=CoreModel, name='CoreModel'))
+db = SQLAlchemy()
 
 
 class Config:

@@ -9,11 +9,12 @@ from sqlalchemy.orm.session import make_transient_to_detached
 from sqlalchemy.sql.elements import BinaryExpression
 
 from core import APIException, _403Exception, _404Exception, cache, db
+from core.mixins.base import BaseFunctionalityMixin
 
 MDL = TypeVar('MDL', bound='SinglePKMixin')
 
 
-class SinglePKMixin(Model):
+class SinglePKMixin(Model, BaseFunctionalityMixin):
     """
     This is the primary mixin for most of pulsar's model classes. This adds caching and JSON
     serialization functionality to the base SQLAlchemy model. Methods belonging to the mixin

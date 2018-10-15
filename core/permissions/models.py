@@ -1,7 +1,7 @@
-from typing import Dict, List, Set
+from typing import Dict, List
 
 import flask
-from sqlalchemy import and_, select
+from sqlalchemy import select
 
 from core import db
 from core.mixins import ClassMixin, MultiPKMixin
@@ -55,7 +55,9 @@ class UserPermission(db.Model, MultiPKMixin):
     granted: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='t')
 
     @classmethod
-    def from_user(cls, user_id: int) -> Dict[str, bool]:
+    def from_user(cls,
+                  user_id: int,
+                  prefix: str = None) -> Dict[str, bool]:
         """
         Gets a dict of all custom permissions assigned to a user.
 
@@ -64,19 +66,8 @@ class UserPermission(db.Model, MultiPKMixin):
                         key and the ``granted`` value as the value
         """
         return {p.permission: p.granted for p in cls.query.filter(  # type: ignore
-                    cls.user_id == user_id).all()}
-
-    @classmethod
-    def get_ungranted_from_user(cls, user_id: int) -> Set[str]:
-        """
-        Get all ungranted permission for a user.
-
-        :param user_id: User ID to get the ungranted permission for
-        :return:        A set of permissions
-        """
-        return {p.permission for p in cls.query.filter(and_(
-            (cls.user_id == user_id),
-            (cls.granted == 'f'))).all()}
+                    cls.user_id == user_id
+                ).all() if not prefix or p.permission.startswith(prefix)}
 
     @classmethod
     def is_valid_permission(cls,

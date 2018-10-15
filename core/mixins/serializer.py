@@ -1,5 +1,6 @@
 import inspect
 from typing import Dict, Union
+from core.mixins.base import BaseFunctionalityMixin
 
 import flask
 
@@ -76,7 +77,7 @@ class Attribute:
         return (has_permission or has_self_access) and nested_bypass and not nested_filter
 
 
-class Serializer:
+class Serializer(BaseFunctionalityMixin):
     """
     Intended to be passed into model arguments as a __serializer__ attr.
     TODO: More documentation.
