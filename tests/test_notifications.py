@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from core import db, cache, _404Exception
+from core import db, cache, APIException
 from core.notifications.models import Notification
 from conftest import check_json_response, add_permissions
 
@@ -92,6 +92,12 @@ def test_get_notification_from_type_include_read(client):
     assert len(notis) == 1
 
 
+def test_get_notification_from_type_false(client):
+    with pytest.raises(APIException) as e:
+        Notification.from_type(1, 'bahaha', include_read=True)
+    assert e.value.message == 'bahaha is not a notification type.'
+
+
 def test_get_pks_from_type(client):
     pks = Notification.get_pks_from_type(1, 'subscripple')
     assert pks == [1]
@@ -114,7 +120,7 @@ def test_clear_cache_keys_without_type(client):
 def test_clear_cache_keys_wrong_type(client):
     ckey = Notification.__cache_key_notification_count__.format(user_id=1, type='subscripple')
     cache.set(ckey, 100)
-    with pytest.raises(_404Exception):
+    with pytest.raises(APIException):
         Notification.clear_cache_keys(1, 'not_real_type')
 
 
@@ -145,7 +151,7 @@ def test_view_notification_of_type_include_read(app, authed_client):
 
 def test_view_notification_of_nonexistent_type(app, authed_client):
     add_permissions(app, 'notifications_view')
-    assert authed_client.get('/notifications/notreal').status_code == 404
+    assert authed_client.get('/notifications/notreal').status_code == 400
 
 
 def test_clear_notifications(app, authed_client):

@@ -98,6 +98,7 @@ def view_notification_type(type: str,
     :>json dict response: A list of notifications
 
     :statuscode 200: Successfully viewed notifications.
+    :statuscode 400: Notification type is invalid.
     :statuscode 403: User does not have access to view notifications.
     """
     user = choose_user(user_id, 'view_notifications_others')
