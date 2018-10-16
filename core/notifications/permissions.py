@@ -1,7 +1,7 @@
-from enum import Enum
+from core.mixins import Permission
 
 
-class NotificationPermissions(Enum):
+class NotificationPermissions(Permission):
     VIEW = 'notifications_view'
     VIEW_OTHERS = 'notifications_view_others'
     MODIFY = 'notifications_modify'

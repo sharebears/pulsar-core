@@ -1,30 +1,12 @@
 from functools import wraps
-from werkzeug.datastructures import MultiDict
-from typing import Callable, Optional, List
+from typing import Callable, Optional
 
 import flask
-from werkzeug import find_modules, import_string
+from werkzeug.datastructures import MultiDict
 
 from core import _312Exception, _401Exception, _403Exception, _404Exception, APIException
 
 app = flask.current_app
-
-
-def get_all_core_permissions() -> List[str]:
-    """
-    Aggregate all the permissions listed in module __init__ files by iterating
-    through them and adding their PERMISSIONS attr to a list.
-    Restrict all uses of this function to users with the "get_all_permissions" permission.
-    Returns the list of aggregated permissions
-
-    :return: The list of permissions
-    """
-    permissions: List[str] = []
-    for name in find_modules('core', include_packages=True):
-        mod = import_string(name)
-        if hasattr(mod, 'PERMISSIONS') and isinstance(mod.PERMISSIONS, list):
-            permissions += mod.PERMISSIONS
-    return permissions
 
 
 def require_permission(permission: str,
