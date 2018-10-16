@@ -7,7 +7,6 @@ from voluptuous import Invalid
 from core import APIException
 from core.permissions.models import SecondaryClass, UserPermission
 from core.users.models import User
-from core.utils import get_all_permissions
 
 
 def PermissionsList(perm_list: List[str]) -> List[str]:
@@ -19,11 +18,10 @@ def PermissionsList(perm_list: List[str]) -> List[str]:
     :return:          The inputted perm_list
     :raises Invalid:  If a permission in the list isn't valid or input isn't a list
     """
-    permissions = get_all_permissions()
     invalid = []
     if isinstance(perm_list, list):
         for perm in perm_list:
-            if perm not in permissions:
+            if not UserPermission.is_valid_permission(perm):
                 invalid.append(perm)
     else:
         raise Invalid('Permissions must be in a list,')

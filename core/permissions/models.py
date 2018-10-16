@@ -6,7 +6,7 @@ from sqlalchemy import select
 from core import db
 from core.mixins import ClassMixin, MultiPKMixin
 from core.users.models import User
-from core.utils import get_all_permissions
+from core.utils import get_all_core_permissions
 
 app = flask.current_app
 
@@ -49,10 +49,13 @@ secondary_class_assoc_table = db.Table(
 
 class UserPermission(db.Model, MultiPKMixin):
     __tablename__ = 'users_permissions'
+    _core_permissions_loaded = False
 
     user_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     permission: str = db.Column(db.String(36), primary_key=True)
     granted: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='t')
+
+    all_permissions = []
 
     @classmethod
     def from_user(cls,
@@ -73,9 +76,13 @@ class UserPermission(db.Model, MultiPKMixin):
     def is_valid_permission(cls,
                             permission: str,
                             permissioned: bool = True) -> bool:
-        permissions = get_all_permissions() if permissioned else cls.get_basic_permissions()
-        return permission in permissions
+        if permissioned:
+            return permission in cls.get_all_permissions()
+        return permission in app.config['BASIC_PERMISSIONS']
 
     @classmethod
-    def get_basic_permissions(cls):
-        return app.config['BASIC_PERMISSIONS']
+    def get_all_permissions(cls):
+        if not cls._core_permissions_loaded:
+            cls.all_permissions += get_all_core_permissions()
+            cls._core_permissions_loaded = True
+        return cls.all_permissions

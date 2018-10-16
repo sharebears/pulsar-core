@@ -1,6 +1,7 @@
 import flask
 
-from core.utils import get_all_permissions, require_permission
+from core.utils import require_permission
+from core.permissions.models import UserPermission
 
 from . import bp
 
@@ -34,4 +35,4 @@ def view_permissions(user_id: int = None,
     :statuscode 200: View successful
     :statuscode 403: User lacks sufficient permissions to view permissions
     """
-    return flask.jsonify({'permissions': get_all_permissions()})
+    return flask.jsonify({'permissions': UserPermission.get_all_permissions()})
