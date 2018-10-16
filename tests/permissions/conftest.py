@@ -6,14 +6,14 @@ from core import db
 
 @pytest.fixture(autouse=True)
 def populate_db(app, client):
-    add_permissions(app, 'list_user_classes', 'modify_user_classes')
+    add_permissions(app, 'userclasses_list', 'userclasses_modify')
     db.engine.execute("""UPDATE user_classes
-                      SET permissions = '{"modify_permissions", "edit_settings"}'
+                      SET permissions = '{"permissions_modify", "users_edit_settings"}'
                       WHERE name = 'User'""")
     db.engine.execute("""UPDATE secondary_classes
-                      SET permissions = '{"send_invites"}'
+                      SET permissions = '{"invites_send"}'
                       WHERE name = 'FLS'""")
     db.engine.execute("""INSERT INTO user_classes (name, permissions) VALUES
-                      ('user_v2', '{"modify_permissions", "edit_settings"}')""")
+                      ('user_v2', '{"permissions_modify", "users_edit_settings"}')""")
     db.engine.execute("""INSERT INTO secondary_classes (name, permissions) VALUES
-                      ('user_v2', '{"edit_settings"}')""")
+                      ('user_v2', '{"users_edit_settings"}')""")

@@ -82,7 +82,7 @@ def test_serialize_self(app, authed_client):
 
 
 def test_serialize_detailed(app, authed_client):
-    add_permissions(app, 'view_invites_others')
+    add_permissions(app, 'invites_view_others')
     invite = Invite.from_pk(CODE_1)
     data = NewJSONEncoder().default(invite)
     check_dictionary(data, {
@@ -96,7 +96,7 @@ def test_serialize_detailed(app, authed_client):
 
 
 def test_serialize_nested(app, authed_client):
-    add_permissions(app, 'view_invites_others')
+    add_permissions(app, 'invites_view_others')
     invite = Invite.from_pk(CODE_1)
     data = NewJSONEncoder()._objects_to_dict(invite.serialize(nested=True))
     check_dictionary(data, {

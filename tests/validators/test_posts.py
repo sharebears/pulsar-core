@@ -6,7 +6,7 @@ from core.validators import PostLength
 
 
 def test_post_length_override(app, authed_client):
-    add_permissions(app, 'no_post_length_limit')
+    add_permissions(app, 'site_no_post_length_limit')
     assert 'hello' == PostLength(max=3)('hello')
 
 

@@ -58,7 +58,7 @@ VIEW_NOTIFICATION_SCHEMA = Schema({
 @bp.route('/notifications/<type>', methods=['GET'])
 @require_permission('notifications_view')
 @validate_data(VIEW_NOTIFICATION_SCHEMA)
-@access_other_user('view_notifications_others')
+@access_other_user('notifications_view_others')
 def view_notification_type(type: str,
                            user: User,
                            page: int = 1,

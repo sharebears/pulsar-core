@@ -12,11 +12,11 @@ app = flask.current_app
 
 
 @bp.route('/invites/<code>', methods=['GET'])
-@require_permission('view_invites')
+@require_permission('invites_view')
 def view_invite(code: str) -> flask.Response:
     """
-    View the details of an invite. Requires the ``view_invites`` permission.
-    Requires the ``view_invites_others`` permission to view another user's invites.
+    View the details of an invite. Requires the ``invites_view`` permission.
+    Requires the ``invites_view_others`` permission to view another user's invites.
 
     .. :quickref: Invite; View an active invite.
 
@@ -47,7 +47,7 @@ def view_invite(code: str) -> flask.Response:
     :statuscode 404: Invite does not exist or user cannot view invite
     """
     return flask.jsonify(Invite.from_pk(
-        code, include_dead=True, _404=True, asrt='view_invites_others'))
+        code, include_dead=True, _404=True, asrt='invites_view_others'))
 
 
 VIEW_INVITES_SCHEMA = Schema({
@@ -57,16 +57,16 @@ VIEW_INVITES_SCHEMA = Schema({
 
 
 @bp.route('/invites', methods=['GET'])
-@require_permission('view_invites')
-@access_other_user('view_invites_others')
+@require_permission('invites_view')
+@access_other_user('invites_view_others')
 @validate_data(VIEW_INVITES_SCHEMA)
-def view_invites(user: User,
+def invites_view(user: User,
                  used: bool,
                  include_dead: bool) -> flask.Response:
     """
     View sent invites. If a user_id is specified, only invites sent by that user
     will be returned, otherwise only your invites are returned. If requester has
-    the ``view_invites_others`` permission, they can view sent invites of another user.
+    the ``invites_view_others`` permission, they can view sent invites of another user.
 
     .. :quickref: Invite; View multiple invites.
 
@@ -101,11 +101,11 @@ USER_INVITE_SCHEMA = Schema({
 
 
 @bp.route('/invites', methods=['POST'])
-@require_permission('send_invites')
+@require_permission('invites_send')
 @validate_data(USER_INVITE_SCHEMA)
 def invite_user(email: str):
     """
-    Sends an invite to the provided email address. Requires the ``send_invites``
+    Sends an invite to the provided email address. Requires the ``invites_send``
     permission. If the site is open registration, this endpoint will raise a
     400 Exception.
 
@@ -152,13 +152,13 @@ def invite_user(email: str):
 
 
 @bp.route('/invites/<code>', methods=['DELETE'])
-@require_permission('revoke_invites')
+@require_permission('invites_revoke')
 def revoke_invite(code: str) -> flask.Response:
     """
     Revokes an active invite code, preventing it from being used. The
     invite is returned to the user's account. Requires the
-    ``revoke_invites`` permission to revoke one's own sent invite, and the
-    ``revoke_invites_others`` permission to revoke another user's invites.
+    ``invites_revoke`` permission to revoke one's own sent invite, and the
+    ``invites_revoke_others`` permission to revoke another user's invites.
 
     .. :quickref: Invite; Revoke an active invite.
 
@@ -185,7 +185,7 @@ def revoke_invite(code: str) -> flask.Response:
     :statuscode 403: Unauthorized to revoke invites
     :statuscode 404: Invite does not exist or user cannot view invite
     """
-    invite = Invite.from_pk(code, _404=True, asrt='revoke_invites_others')
+    invite = Invite.from_pk(code, _404=True, asrt='invites_revoke_others')
     invite.expired = True
     invite.inviter.invites += 1
     db.session.commit()

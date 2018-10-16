@@ -4,9 +4,8 @@ import flask
 from sqlalchemy import select
 
 from core import db
-from core.mixins import ClassMixin, MultiPKMixin
+from core.mixins import ClassMixin, MultiPKMixin, Permission
 from core.users.models import User
-from core.utils import get_all_core_permissions
 
 app = flask.current_app
 
@@ -83,6 +82,6 @@ class UserPermission(db.Model, MultiPKMixin):
     @classmethod
     def get_all_permissions(cls):
         if not cls._core_permissions_loaded:
-            cls.all_permissions += get_all_core_permissions()
+            cls.all_permissions = Permission.get_all_permissions()
             cls._core_permissions_loaded = True
         return cls.all_permissions

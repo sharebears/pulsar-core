@@ -46,7 +46,7 @@ def check_api_key() -> None:
                     raise _401Exception
             flask.g.user = User.from_pk(api_key.user_id)
             flask.g.api_key = api_key
-            if flask.g.user.has_permission('no_ip_history'):
+            if flask.g.user.has_permission('site_no_ip_history'):
                 flask.request.environ['REMOTE_ADDR'] = '0.0.0.0'
             update_api_key(api_key)
         else:

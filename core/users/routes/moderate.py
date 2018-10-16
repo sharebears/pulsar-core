@@ -22,12 +22,12 @@ MODERATE_USER_SCHEMA = Schema({
     'uploaded': All(int, Range(min=0, max=9223372036854775808)),
     'downloaded': All(int, Range(min=0, max=9223372036854775808)),
     'invites': All(int, Range(min=0, max=2147483648)),
-    'permissions': PermissionsDict(restrict='moderate_users_advanced'),
+    'permissions': PermissionsDict(restrict='users_moderate_advanced'),
     })
 
 
 @bp.route('/users/<int:user_id>', methods=['PUT'])
-@require_permission('moderate_users')
+@require_permission('users_moderate')
 @validate_data(MODERATE_USER_SCHEMA)
 def moderate_user(user_id: int,
                   email: str = None,

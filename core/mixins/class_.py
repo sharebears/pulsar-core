@@ -19,7 +19,7 @@ class ClassSerializer(Serializer):
     """
     id = Attribute()
     name = Attribute()
-    permissions = Attribute(permission='modify_user_classes')
+    permissions = Attribute(permission='userclasses_modify')
 
 
 class ClassMixin(SinglePKMixin):

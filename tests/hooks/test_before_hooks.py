@@ -17,7 +17,7 @@ def cache_num_iter(*args, **kwargs):
 
 def test_api_key_auth_and_ip_override(app, client):
     """User and APIKey IP should be overridden with IP history override permissions."""
-    add_permissions(app, 'no_ip_history')
+    add_permissions(app, 'site_no_ip_history')
 
     @app.route('/test_api_key')
     def test_api_key():

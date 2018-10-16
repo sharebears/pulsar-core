@@ -24,14 +24,14 @@ from core.users.models import Invite, User
     ])
 def test_view_invite(app, authed_client, code, expected):
     """Viewing invites should return the invite."""
-    add_permissions(app, 'view_invites')
+    add_permissions(app, 'invites_view')
     response = authed_client.get(f'/invites/{code}')
     check_json_response(response, expected)
 
 
-def test_view_invites_multiple(app, authed_client):
+def test_invites_view_multiple(app, authed_client):
     """Viewing the invite of a user should return a list of them."""
-    add_permissions(app, 'view_invites')
+    add_permissions(app, 'invites_view')
     response = authed_client.get('/invites')
     check_json_response(response, {
         'expired': False,
@@ -43,17 +43,17 @@ def test_view_invites_multiple(app, authed_client):
     assert response.status_code == 200
 
 
-def test_view_invites_include_dead(app, authed_client):
+def test_invites_view_include_dead(app, authed_client):
     """Including dead torrents in the list view should return dead invites."""
-    add_permissions(app, 'view_invites')
+    add_permissions(app, 'invites_view')
     response = authed_client.get('/invites', query_string={'include_dead': True})
     assert len(response.get_json()['response']) == 3
     assert response.status_code == 200
 
 
-def test_view_invites_used(app, authed_client):
+def test_invites_view_used(app, authed_client):
     """Viewing only used invites should omit non-used invites."""
-    add_permissions(app, 'view_invites')
+    add_permissions(app, 'invites_view')
     response = authed_client.get('/invites', query_string={'used': True})
     check_json_response(response, {
         'expired': True,
@@ -64,9 +64,9 @@ def test_view_invites_used(app, authed_client):
     assert response.status_code == 200
 
 
-def test_view_invites_of_nonexistent_user(app, authed_client):
+def test_invites_view_of_nonexistent_user(app, authed_client):
     """Viewing the invites of a nonexistent user should raise a 404."""
-    add_permissions(app, 'view_invites', 'view_invites_others')
+    add_permissions(app, 'invites_view', 'invites_view_others')
     response = authed_client.get('/invites', query_string={'user_id': 99})
     check_json_response(response, 'User 99 does not exist.')
 
@@ -77,7 +77,7 @@ def test_invite_user_with_code(app, authed_client):
     and deduct an invite from the inviter.
     """
     app.config['REQUIRE_INVITE_CODE'] = True
-    add_permissions(app, 'send_invites')
+    add_permissions(app, 'invites_send')
     response = authed_client.post(
         '/invites', data=json.dumps({'email': 'bright@puls.ar'}),
         content_type='application/json')
@@ -95,7 +95,7 @@ def test_invite_user_with_code(app, authed_client):
 def test_invites_list_cache_clear(app, authed_client):
     """Sending an invite should clear the cache key for a user's list of invites."""
     app.config['REQUIRE_INVITE_CODE'] = True
-    add_permissions(app, 'send_invites')
+    add_permissions(app, 'invites_send')
     Invite.from_inviter(1)  # Cache it
 
     authed_client.post('/invites', data=json.dumps({'email': 'bright@puls.ar'}))
@@ -106,7 +106,7 @@ def test_invites_list_cache_clear(app, authed_client):
 def test_user_send_but_does_not_have_invite(app, authed_client):
     """Attempting to send an invite when the user has none should return an error."""
     app.config['REQUIRE_INVITE_CODE'] = True
-    add_permissions(app, 'send_invites')
+    add_permissions(app, 'invites_send')
     db.engine.execute('UPDATE users SET invites = 0')
     db.session.commit()
     response = authed_client.post(
@@ -119,7 +119,7 @@ def test_user_send_but_does_not_have_invite(app, authed_client):
 def test_invite_without_code(app, authed_client):
     """Sending an invite when open reg is on should error."""
     app.config['REQUIRE_INVITE_CODE'] = False
-    add_permissions(app, 'send_invites')
+    add_permissions(app, 'invites_send')
     response = authed_client.post('/invites', data=json.dumps({'email': 'bright@puls.ar'}))
     check_json_response(response, 'An invite code is not required to register, '
                         'so invites have been disabled.')
@@ -134,7 +134,7 @@ def test_invite_without_code(app, authed_client):
     ])
 def test_revoke_invite(app, authed_client, code, expected, invites):
     """Revoking an invite should work only for active invites."""
-    add_permissions(app, 'revoke_invites')
+    add_permissions(app, 'invites_revoke')
     response = authed_client.delete(f'/invites/{code}')
     user = User.from_pk(1)
     check_json_response(response, expected)
@@ -149,7 +149,7 @@ def test_revoke_invite_others(app, authed_client):
     Reovoking another's invite with the proper permissions should work and re-add
     the invite to the inviter's invite count.
     """
-    add_permissions(app, 'revoke_invites', 'revoke_invites_others', 'view_invites_others')
+    add_permissions(app, 'invites_revoke', 'invites_revoke_others', 'invites_view_others')
     response = authed_client.delete(f'/invites/{CODE_3}')
     check_json_response(response, {'expired': True})
     user = User.from_pk(2)
@@ -158,7 +158,7 @@ def test_revoke_invite_others(app, authed_client):
 
 def test_revoke_invite_others_failure(app, authed_client):
     """Revoking another's invite without permission should raise a 404."""
-    add_permissions(app, 'revoke_invites')
+    add_permissions(app, 'invites_revoke')
     response = authed_client.delete(f'/invites/{CODE_3}')
     print(response.get_json())
     check_json_response(response, f'Invite {CODE_3} does not exist.')

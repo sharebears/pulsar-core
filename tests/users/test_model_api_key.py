@@ -54,7 +54,7 @@ def test_serialize_no_perms(app, client):
 
 
 def test_serialize_detailed(app, authed_client):
-    add_permissions(app, 'view_api_keys_others')
+    add_permissions(app, 'api_keys_view_others')
     api_key = APIKey.from_pk('1234567890', include_dead=True)
     data = NewJSONEncoder().default(api_key)
     check_dictionary(data, {

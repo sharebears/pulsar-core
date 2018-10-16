@@ -7,7 +7,7 @@ from core.users.models import User
 
 def test_get_from_cache(app, authed_client):
     """Test that cache values are used instead of querying a user."""
-    add_permissions(app, 'view_users')
+    add_permissions(app, 'users_view')
     user = User.from_pk(1)
     data = {}
     for attr in user.__table__.columns.keys():

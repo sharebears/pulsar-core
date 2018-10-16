@@ -28,8 +28,8 @@ def test_create_dupe_user_classes_database(app, client, class_, name):
 
 @pytest.mark.parametrize(
     'class_, class_id, permission', [
-        (UserClass, 1, 'edit_settings'),
-        (SecondaryClass, 1, 'send_invites'),
+        (UserClass, 1, 'users_edit_settings'),
+        (SecondaryClass, 1, 'invites_send'),
     ])
 def test_user_class_cache(app, client, class_, class_id, permission):
     user_class = class_.from_pk(class_id)
@@ -46,7 +46,7 @@ def test_user_class_cache_get_all(app, client, class_):
     cache.set(class_.__cache_key_all__, [2], timeout=60)
     all_user_classes = class_.get_all()
     assert len(all_user_classes) == 1
-    assert 'edit_settings' in all_user_classes[0].permissions
+    assert 'users_edit_settings' in all_user_classes[0].permissions
 
 
 def test_user_secondary_classes_models(app, client):
@@ -71,5 +71,5 @@ def test_serialize_user_class_detailed(app, authed_client):
     check_dictionary(data, {
         'id': 1,
         'name': 'User',
-        'permissions': ['modify_permissions', 'edit_settings'],
+        'permissions': ['permissions_modify', 'users_edit_settings'],
         }, strict=True)

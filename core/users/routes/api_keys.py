@@ -14,11 +14,11 @@ app = flask.current_app
 
 
 @bp.route('/api_keys/<hash>', methods=['GET'])
-@require_permission('view_api_keys')
+@require_permission('api_keys_view')
 def view_api_key(hash: str) -> flask.Response:
     """
-    View info of an API key. Requires the ``view_api_keys`` permission to view
-    one's own API keys, and the ``view_api_keys_others`` permission to view
+    View info of an API key. Requires the ``api_keys_view`` permission to view
+    one's own API keys, and the ``api_keys_view_others`` permission to view
     the API keys of another user.
 
     .. :quickref: APIKey; View an API key.
@@ -38,7 +38,7 @@ def view_api_key(hash: str) -> flask.Response:
     :statuscode 404: API key does not exist.
     """
     return flask.jsonify(APIKey.from_pk(
-        hash, include_dead=True, _404=True, asrt='view_api_keys_others'))
+        hash, include_dead=True, _404=True, asrt='api_keys_view_others'))
 
 
 VIEW_ALL_API_KEYS_SCHEMA = Schema({
@@ -47,14 +47,14 @@ VIEW_ALL_API_KEYS_SCHEMA = Schema({
 
 
 @bp.route('/api_keys', methods=['GET'])
-@require_permission('view_api_keys')
-@access_other_user('view_api_keys_others')
+@require_permission('api_keys_view')
+@access_other_user('api_keys_view_others')
 @validate_data(VIEW_ALL_API_KEYS_SCHEMA)
 def view_all_api_keys(user: User,
                       include_dead: bool) -> flask.Response:
     """
-    View all API keys of a user. Requires the ``view_api_keys`` permission to view
-    one's own API keys, and the ``view_api_keys_others`` permission to view
+    View all API keys of a user. Requires the ``api_keys_view`` permission to view
+    one's own API keys, and the ``api_keys_view_others`` permission to view
     the API keys of another user.
 
     .. :quickref: APIKey; View multiple API keys.
@@ -128,8 +128,8 @@ def create_api_key(username: str = None,
            "hash": "abcdefghij",
            "key": "abcdefghijklmnopqrstuvwx",
            "permissions": [
-             "view_api_keys",
-             "send_invites"
+             "api_keys_view",
+             "invites_send"
            ]
          }
        }
@@ -162,12 +162,12 @@ def create_api_key(username: str = None,
 
 
 @bp.route('/api_keys/<hash>', methods=['DELETE'])
-@require_permission('revoke_api_keys')
+@require_permission('api_keys_revoke')
 def revoke_api_key(hash: str) -> flask.Response:
     """
     Revokes an API key currently in use by the user. Requires the
-    ``revoke_api_keys`` permission to revoke one's own API keys, and the
-    ``revoke_api_keys_others`` permission to revoke the keys of other users.
+    ``api_keys_revoke`` permission to revoke one's own API keys, and the
+    ``api_keys_revoke_others`` permission to revoke the keys of other users.
 
     .. :quickref: APIKey; Revoke an API key.
 
@@ -197,7 +197,7 @@ def revoke_api_key(hash: str) -> flask.Response:
         to revoke the API key
     """
     api_key = APIKey.from_pk(
-        hash, include_dead=True, _404=True, asrt='revoke_api_keys_others')
+        hash, include_dead=True, _404=True, asrt='api_keys_revoke_others')
     if api_key.revoked:
         raise APIException(f'APIKey {hash} is already revoked.')
     api_key.revoked = True
@@ -206,13 +206,13 @@ def revoke_api_key(hash: str) -> flask.Response:
 
 
 @bp.route('/api_keys', methods=['DELETE'])
-@require_permission('revoke_api_keys')
-@access_other_user('revoke_api_keys_others')
+@require_permission('api_keys_revoke')
+@access_other_user('api_keys_revoke_others')
 def revoke_all_api_keys(user: User) -> flask.Response:
     """
     Revokes all API keys currently in use by the user. Requires the
-    ``revoke_api_keys`` permission to revoke one's own API keys, and the
-    ``revoke_api_keys_others`` permission to revoke the keys of other users.
+    ``api_keys_revoke`` permission to revoke one's own API keys, and the
+    ``api_keys_revoke_others`` permission to revoke the keys of other users.
 
     .. :quickref: APIKey; Revoke all API keys.
 
