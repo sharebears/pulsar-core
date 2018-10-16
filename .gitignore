@@ -10,3 +10,5 @@ config.py
 !.gitlab-ci.yml
 !.nojekyll
 !.gitkeep
+!.gitattributes
+!.editorconfig
