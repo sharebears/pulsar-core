@@ -12,13 +12,13 @@ app = flask.current_app
 
 
 @bp.route('/users/<int:user_id>', methods=['GET'])
-@require_permission('view_users')
+@require_permission('users_view')
 def get_user(user_id: int) -> flask.Response:
     """
     Return general information about a user with the given user ID.  If the
     user is getting information about themselves, the API will return more
     detailed data about the user. If the requester has the
-    ``moderate_users`` permission, the API will return *even more* data.
+    ``users_moderate`` permission, the API will return *even more* data.
 
     .. :quickref: User; Get user information.
 

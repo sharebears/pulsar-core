@@ -2,9 +2,9 @@ from core.mixins import Attribute, Serializer
 
 
 class NotificationSerializer(Serializer):
-    id = Attribute(permission='view_notifications_others')
-    user_id = Attribute(permission='view_notifications_others')
-    type = Attribute(permission='view_notifications_others')
-    time = Attribute(permission='view_notifications_others')
-    contents = Attribute(permission='view_notifications_others')
-    read = Attribute(permission='view_notifications_others')
+    id = Attribute(permission='notifications_view_others')
+    user_id = Attribute(permission='notifications_view_others')
+    type = Attribute(permission='notifications_view_others')
+    time = Attribute(permission='notifications_view_others')
+    contents = Attribute(permission='notifications_view_others')
+    read = Attribute(permission='notifications_view_others')

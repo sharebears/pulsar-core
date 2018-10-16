@@ -13,8 +13,8 @@ def test_permissions_from_user(app, client):
         'perm_one': True,
         'perm_two': True,
         'perm_three': False,
-        'list_user_classes': True,
-        'modify_user_classes': True,
+        'userclasses_list': True,
+        'userclasses_modify': True,
     }
 
 
@@ -34,6 +34,6 @@ def test_user_class_permission_override(app, authed_client):
         'sample_c',
         'sample_d',
         'sample_e',
-        'modify_user_classes',
-        'list_user_classes'
+        'userclasses_modify',
+        'userclasses_list'
         }

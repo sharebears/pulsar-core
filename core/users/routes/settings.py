@@ -20,15 +20,15 @@ SETTINGS_SCHEMA = Schema({
 
 
 @bp.route('/users/settings', methods=['PUT'])
-@require_permission('edit_settings')
+@require_permission('users_edit_settings')
 @validate_data(SETTINGS_SCHEMA)
-@access_other_user('moderate_users')
-def edit_settings(user: User,
-                  existing_password: str =None,
-                  new_password: str =None) -> flask.Response:
+@access_other_user('users_moderate')
+def users_edit_settings(user: User,
+                        existing_password: str =None,
+                        new_password: str =None) -> flask.Response:
     """
-    Change a user's settings. Requires the ``edit_settings`` permission.
-    Requires the ``moderate_users`` permission to change another user's
+    Change a user's settings. Requires the ``users_edit_settings`` permission.
+    Requires the ``users_moderate`` permission to change another user's
     settings, which can be done by specifying a ``user_id``.
 
     .. :quickref: Settings; Change settings.
@@ -63,7 +63,7 @@ def edit_settings(user: User,
     :statuscode 403: User does not have permission to change user's settings
     """
     if new_password:
-        if not flask.g.user.has_permission('change_password'):
+        if not flask.g.user.has_permission('users_change_password'):
             raise _403Exception(
                 message='You do not have permission to change this password.')
         if not existing_password or not user.check_password(existing_password):

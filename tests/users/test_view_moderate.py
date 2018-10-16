@@ -9,7 +9,7 @@ from core.users.models import User
 
 
 def test_int_overflow(app, authed_client):
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     response = authed_client.put('/users/1', data=json.dumps({
         'invites': 99999999999999999999999999,
         }))
@@ -17,7 +17,7 @@ def test_int_overflow(app, authed_client):
 
 
 def test_moderate_user(app, authed_client):
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     response = authed_client.put('/users/2', data=json.dumps({
         'email': 'new@ema.il',
         'uploaded': 999,
@@ -36,7 +36,7 @@ def test_moderate_user(app, authed_client):
 
 
 def test_moderate_user_incomplete(app, authed_client):
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     response = authed_client.put('/users/2', data=json.dumps({
         'password': 'abcdefGHIfJK12#',
         }))
@@ -51,7 +51,7 @@ def test_moderate_user_incomplete(app, authed_client):
 
 
 def test_moderate_user_not_found(app, authed_client):
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     response = authed_client.put('/users/10', data=json.dumps({
         'email': 'new@ema.il',
         }))
@@ -60,47 +60,47 @@ def test_moderate_user_not_found(app, authed_client):
 
 
 def test_change_permissions(app, authed_client):
-    add_permissions(app, 'change_password', 'list_user_classes', 'modify_user_classes')
+    add_permissions(app, 'users_change_password', 'userclasses_list', 'userclasses_modify')
     db.engine.execute("""INSERT INTO users_permissions (user_id, permission, granted)
-                      VALUES (1, 'send_invites', 'f')""")
+                      VALUES (1, 'invites_send', 'f')""")
     db.engine.execute(
         """UPDATE user_classes
-        SET permissions = '{"moderate_users", "moderate_users_advanced", "view_invites"}'""")
+        SET permissions = '{"users_moderate", "users_moderate_advanced", "invites_view"}'""")
 
     response = authed_client.put('/users/1', data=json.dumps({
         'permissions': {
-            'moderate_users': False,
-            'change_password': False,
-            'view_invites': False,
-            'send_invites': True,
+            'users_moderate': False,
+            'users_change_password': False,
+            'invites_view': False,
+            'invites_send': True,
         }})).get_json()
 
     print(response['response'])
     assert set(response['response']['permissions']) == {
-        'moderate_users_advanced', 'modify_user_classes', 'send_invites', 'list_user_classes'}
+        'users_moderate_advanced', 'userclasses_modify', 'invites_send', 'userclasses_list'}
 
     u_perms = UserPermission.from_user(1)
     assert u_perms == {
-        'list_user_classes': True,
-        'modify_user_classes': True,
-        'send_invites': True,
-        'view_invites': False,
-        'moderate_users': False,
+        'userclasses_list': True,
+        'userclasses_modify': True,
+        'invites_send': True,
+        'invites_view': False,
+        'users_moderate': False,
         }
 
 
 @pytest.mark.parametrize(
     'permissions, expected', [
-        ({'send_invites': True, 'view_invites': False},
-         'The following permissions could not be added: send_invites.'),
-        ({'change_password': False, 'send_invites': False},
-         'The following permissions could not be deleted: change_password.'),
-        ({'legacy': False, 'view_invites': False},
+        ({'invites_send': True, 'invites_view': False},
+         'The following permissions could not be added: invites_send.'),
+        ({'users_change_password': False, 'invites_send': False},
+         'The following permissions could not be deleted: users_change_password.'),
+        ({'legacy': False, 'invites_view': False},
          'legacy is not a valid permission.'),
     ])
 def test_change_permissions_failure(app, authed_client, permissions, expected):
-    add_permissions(app, 'moderate_users', 'moderate_users_advanced',
-                    'send_invites', 'view_invites')
+    add_permissions(app, 'users_moderate', 'users_moderate_advanced',
+                    'invites_send', 'invites_view')
     db.engine.execute(
         """UPDATE user_classes SET permissions = '{"legacy"}'
         WHERE name = 'User'""")
@@ -111,11 +111,11 @@ def test_change_permissions_failure(app, authed_client, permissions, expected):
 
 def test_change_permissions_restricted(app, authed_client):
     """Basic but not advanced permissions privileges."""
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     response = authed_client.put('/users/1', data=json.dumps({
-        'permissions': {'moderate_users': False}}))
+        'permissions': {'users_moderate': False}}))
     check_json_response(
-        response, 'Invalid data: moderate_users is not a valid permission (key "permissions")')
+        response, 'Invalid data: users_moderate is not a valid permission (key "permissions")')
 
 
 @pytest.mark.parametrize(

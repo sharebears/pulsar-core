@@ -11,6 +11,7 @@ from .single_pk import SinglePKMixin  # noqa: F401
 class Permission(Enum):
     """This class is used to track the permission subclasses."""
 
+    @staticmethod
     def get_all_permissions() -> List[str]:
         """
         Aggregate all the permissions in permission enum subclasses. Restrict all

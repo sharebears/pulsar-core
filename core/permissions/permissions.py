@@ -6,5 +6,5 @@ class PermissionPermissions(Permission):
 
 
 class UserclassPermissions(Permission):
-    LIST = 'user_classes_list'
-    MODIFY = 'user_classes_modify'
+    LIST = 'userclasses_list'
+    MODIFY = 'userclasses_modify'

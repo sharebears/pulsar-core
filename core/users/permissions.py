@@ -6,6 +6,7 @@ class UserPermissions(Permission):
     CHANGE_PASS = 'users_change_password'
     EDIT_SETTINGS = 'users_edit_settings'
     MODERATE = 'users_moderate'
+    MODERATE_ADVANCED = 'users_moderate_advanced'
 
 
 class InvitePermissions(Permission):

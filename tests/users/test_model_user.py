@@ -100,9 +100,9 @@ def test_locked_account_permissions(app, client):
 
 
 def test_basic_permissions(app, client):
-    add_permissions(app, 'send_invites', 'list_user_classes')
+    add_permissions(app, 'invites_send', 'userclasses_list')
     user = User.from_pk(1)
-    assert user.basic_permissions == ['send_invites']
+    assert user.basic_permissions == ['invites_send']
 
 
 def test_locked_acc_perms_blocked(app, client):
@@ -116,7 +116,7 @@ def test_locked_acc_perms_blocked(app, client):
 
 def test_locked_acc_perms_can_access(app, client):
     db.engine.execute("UPDATE users SET locked = 't' where id = 2")
-    app.config['LOCKED_ACCOUNT_PERMISSIONS'] = {'view_users'}
+    app.config['LOCKED_ACCOUNT_PERMISSIONS'] = {'users_view'}
 
     response = client.get('/users/1', headers={
         'Authorization': f'Token bcdefghijk{CODE_3}'
@@ -161,7 +161,7 @@ def test_serialize_self(app, authed_client):
 
 
 def test_serialize_detailed(app, authed_client):
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     user = User.from_pk(1)
     data = NewJSONEncoder().default(user)
     check_dictionary(data, {
@@ -182,7 +182,7 @@ def test_serialize_detailed(app, authed_client):
 
 
 def test_serialize_very_detailed(app, authed_client):
-    add_permissions(app, 'moderate_users', 'moderate_users_advanced')
+    add_permissions(app, 'users_moderate', 'users_moderate_advanced')
     user = User.from_pk(1)
     data = NewJSONEncoder().default(user)
     check_dictionary(data, {
@@ -201,11 +201,11 @@ def test_serialize_very_detailed(app, authed_client):
         })
     assert 'api_keys' in data and len(data['api_keys']) == 2
     assert 'permissions' in data and set(data['permissions']) == {
-        'moderate_users', 'moderate_users_advanced'}
+        'users_moderate', 'users_moderate_advanced'}
 
 
 def test_serialize_nested(app, authed_client):
-    add_permissions(app, 'moderate_users')
+    add_permissions(app, 'users_moderate')
     user = User.from_pk(1)
     data = NewJSONEncoder()._objects_to_dict(user.serialize(nested=True))
     check_dictionary(data, {

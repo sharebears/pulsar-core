@@ -19,13 +19,13 @@ VIEW_USER_CLASS_SCHEMA = Schema({
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['GET'])
-@require_permission('modify_user_classes')
+@require_permission('userclasses_modify')
 @validate_data(VIEW_USER_CLASS_SCHEMA)
 def view_user_class(user_class_id: int,
                     secondary: bool = False) -> flask.Response:
     """
     View an available user class and its associated permission sets.
-    Requires the ``list_user_classes`` permission.
+    Requires the ``userclasses_list`` permission.
 
     .. :quickref: UserClass; View a user class.
 
@@ -47,12 +47,12 @@ def view_user_class(user_class_id: int,
 
 
 @bp.route('/user_classes', methods=['GET'])
-@require_permission('list_user_classes')
+@require_permission('userclasses_list')
 @validate_data(VIEW_USER_CLASS_SCHEMA)
 def view_multiple_user_classes(secondary: bool = False) -> flask.Response:
     """
     View all available user classes and their associated permission sets.
-    Requires the ``list_user_classes`` permission.
+    Requires the ``userclasses_list`` permission.
 
     .. :quickref: UserClass; View multiple user classes.
 
@@ -88,13 +88,13 @@ CREATE_USER_CLASS_SCHEMA = Schema({
 
 
 @bp.route('/user_classes', methods=['POST'])
-@require_permission('modify_user_classes')
+@require_permission('userclasses_modify')
 @validate_data(CREATE_USER_CLASS_SCHEMA)
 def create_user_class(name: str,
                       permissions: List[str],
                       secondary: bool = False) -> flask.Response:
     """
-    Create a new user class. Requires the ``modify_user_classes`` permission.
+    Create a new user class. Requires the ``userclasses_modify`` permission.
 
     .. :quickref: UserClass; Create new user class.
 
@@ -107,8 +107,8 @@ def create_user_class(name: str,
        {
          "name": "user_v2",
          "permissions": [
-           "send_invites",
-           "change_password"
+           "invites_send",
+           "users_change_password"
          ]
        }
 
@@ -140,10 +140,10 @@ def create_user_class(name: str,
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['DELETE'])
-@require_permission('modify_user_classes')
+@require_permission('userclasses_modify')
 def delete_user_class(user_class_id: int) -> flask.Response:
     """
-    Create a new user class. Requires the ``modify_user_classes`` permission.
+    Create a new user class. Requires the ``userclasses_modify`` permission.
 
     .. :quickref: UserClass; Delete user class.
 
@@ -197,14 +197,14 @@ MODIFY_USER_CLASS_SCHEMA = Schema({
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['PUT'])
-@require_permission('modify_user_classes')
+@require_permission('userclasses_modify')
 @validate_data(MODIFY_USER_CLASS_SCHEMA)
 def modify_user_class(user_class_id: int,
                       permissions: Dict[str, bool],
                       secondary: bool = False) -> flask.Response:
     """
     Modifies permissions for an existing user class.
-    Requires the ``modify_user_classes`` permission.
+    Requires the ``userclasses_modify`` permission.
 
     .. :quickref: UserClass; Modify existing user class.
 
@@ -216,8 +216,8 @@ def modify_user_class(user_class_id: int,
 
        {
          "permissions": {
-           "send_invites": false,
-           "change_password": true,
+           "invites_send": false,
+           "users_change_password": true,
            "list_permissions": true
          }
        }

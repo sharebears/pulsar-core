@@ -7,30 +7,30 @@ from core import db
 
 
 def test_get_all_permissions(app, authed_client):
-    add_permissions(app, 'modify_permissions')
+    add_permissions(app, 'permissions_modify')
     response = authed_client.get('/permissions')
     data = json.loads(response.get_data())['response']
     assert 'permissions' in data
     assert all(perm in data['permissions'] for perm in [
-        'modify_permissions',
-        'view_invites',
-        'no_ip_history',
+        'permissions_modify',
+        'invites_view',
+        'site_no_ip_history',
         ])
     assert all(len(perm) <= 32 for perm in data['permissions'])
 
 
 def test_user_class_permissions(app, authed_client):
-    add_permissions(app, 'view_invites')
+    add_permissions(app, 'invites_view')
     db.engine.execute(
-        """UPDATE user_classes SET permissions = '{"modify_permissions"}'
+        """UPDATE user_classes SET permissions = '{"permissions_modify"}'
         WHERE name = 'User'
         """)
     response = authed_client.get('/permissions')
     data = response.get_json()['response']
     assert all(perm in data['permissions'] for perm in [
-        'modify_permissions',
-        'view_invites',
-        'modify_user_classes',
+        'permissions_modify',
+        'invites_view',
+        'userclasses_modify',
         ])
 
 

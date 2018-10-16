@@ -7,7 +7,7 @@ from core import cache
 
 
 def test_get_user_self_and_caches(app, authed_client):
-    add_permissions(app, 'view_users')
+    add_permissions(app, 'users_view')
     response = authed_client.get('/users/1')
     check_json_response(response, {
         'id': 1,
@@ -22,7 +22,7 @@ def test_get_user_self_and_caches(app, authed_client):
 
 
 def test_get_user(app, authed_client):
-    add_permissions(app, 'view_users')
+    add_permissions(app, 'users_view')
     response = authed_client.get('/users/2')
     check_json_response(response, {
         'id': 2,
@@ -37,7 +37,7 @@ def test_get_user(app, authed_client):
 
 
 def test_get_user_detailed(app, authed_client):
-    add_permissions(app, 'view_users', 'moderate_users')
+    add_permissions(app, 'users_view', 'users_moderate')
     response = authed_client.get('/users/1')
     check_json_response(response, {
         'id': 1,
@@ -55,7 +55,7 @@ def test_get_user_detailed(app, authed_client):
 
 
 def test_user_does_not_exist(app, authed_client):
-    add_permissions(app, 'view_users')
+    add_permissions(app, 'users_view')
     response = authed_client.get('/users/4')
     check_json_response(response, 'User 4 does not exist.', strict=True)
     assert response.status_code == 404
@@ -66,8 +66,8 @@ def test_user_does_not_exist(app, authed_client):
         ('12345', 'aB1%ckeofa12342', 'Settings updated.'),
         ('54321', 'aB1%ckeofa12342', 'Invalid existing password.'),
     ])
-def test_edit_settings(app, authed_client, existing_password, new_password, message):
-    add_permissions(app, 'edit_settings', 'change_password')
+def test_users_edit_settings(app, authed_client, existing_password, new_password, message):
+    add_permissions(app, 'users_edit_settings', 'users_change_password')
     response = authed_client.put('/users/settings', data=json.dumps({
         'existing_password': existing_password,
         'new_password': new_password,
@@ -75,8 +75,8 @@ def test_edit_settings(app, authed_client, existing_password, new_password, mess
     check_json_response(response, message, strict=True)
 
 
-def test_edit_settings_pw_fail(app, authed_client):
-    add_permissions(app, 'edit_settings')
+def test_users_edit_settings_pw_fail(app, authed_client):
+    add_permissions(app, 'users_edit_settings')
     response = authed_client.put('/users/settings', data=json.dumps({
         'existing_password': '12345',
         'new_password': 'aB1%ckeofa12342',
@@ -85,8 +85,8 @@ def test_edit_settings_pw_fail(app, authed_client):
         response, 'You do not have permission to change this password.')
 
 
-def test_edit_settings_others(app, authed_client):
-    add_permissions(app, 'edit_settings', 'change_password', 'moderate_users')
+def test_users_edit_settings_others(app, authed_client):
+    add_permissions(app, 'users_edit_settings', 'users_change_password', 'users_moderate')
     response = authed_client.put('/users/settings', query_string={'user_id': 2}, data=json.dumps({
         }))
     check_json_response(response, 'Settings updated.', strict=True)

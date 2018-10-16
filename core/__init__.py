@@ -23,7 +23,7 @@ class Config:
     # These are permissions which can be manipulated by users with basic
     # user editing capibilities that do not have full permissioning powers.
     BASIC_PERMISSIONS = [
-        'send_invites',
+        'invites_send',
     ]
 
 

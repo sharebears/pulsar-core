@@ -12,7 +12,7 @@ from core.validators import (PermissionsDict, PermissionsList, PermissionsListOf
 
 
 def test_PermissionsList(app, authed_client):
-    permissions = ['change_password', 'modify_permissions']
+    permissions = ['users_change_password', 'permissions_modify']
     assert permissions == PermissionsList(permissions)
 
 
@@ -63,8 +63,8 @@ def test_PermissionsListOfUser_error(app, authed_client, permissions):
 
 def test_PermissionsDict():
     permissions = {
-        'modify_permissions': True,
-        'view_invites': True,
+        'permissions_modify': True,
+        'invites_view': True,
         'fake_perm': False,
     }
     assert permissions == PermissionsDict().__call__(permissions)
@@ -72,9 +72,9 @@ def test_PermissionsDict():
 
 @pytest.mark.parametrize(
     'permissions, expected', [
-        ({'change_password': 'false', 'view_invites': True},
+        ({'users_change_password': 'false', 'invites_view': True},
          'permission actions must be booleans'),
-        ({'change_wasspord': True, 'view_invites': False},
+        ({'change_wasspord': True, 'invites_view': False},
          'change_wasspord is not a valid permission'),
         ('not-a-dict', 'input value must be a dictionary'),
     ])
