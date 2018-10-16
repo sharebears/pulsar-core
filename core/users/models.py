@@ -122,8 +122,7 @@ class User(db.Model, SinglePKMixin):
 
     @cached_property
     def basic_permissions(self) -> List[str]:
-        from core.permissions.models import UserPermission
-        return [p for p in self.permissions if p in UserPermission.get_basic_permissions()]
+        return [p for p in self.permissions if p in app.config['BASIC_PERMISSIONS']]
 
     @cached_property
     def user_class_model(self) -> 'UserClass_':
@@ -236,6 +235,7 @@ class APIKey(db.Model, SinglePKMixin):
     user_agent: str = db.Column(db.Text)
     revoked: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
     permanent: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
+    timeout: bool = db.Column(db.Integer, nullable=False, server_default='3600')
     permissions: str = db.Column(ARRAY(db.String(36)))
 
     @classmethod
@@ -243,7 +243,8 @@ class APIKey(db.Model, SinglePKMixin):
             user_id: int,
             ip: str,
             user_agent: str,
-            permanent: bool,
+            permanent: bool = False,
+            timeout: int = 60 * 30,
             permissions: List[str] = None) -> Tuple[str, 'APIKey']:
         """
         Create a new API Key with randomly generated secret keys and the
@@ -269,6 +270,7 @@ class APIKey(db.Model, SinglePKMixin):
             ip=ip,
             user_agent=user_agent,
             permanent=permanent,
+            timeout=timeout,
             permissions=permissions or [])
         return (hash + key, api_key)
 

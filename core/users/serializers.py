@@ -36,4 +36,5 @@ class APIKeySerializer(Serializer):
     user_agent = Attribute(permission='view_api_keys_others')
     revoked = Attribute(permission='view_api_keys_others')
     permanent = Attribute(permission='view_api_keys_others')
+    timeout = Attribute(permission='view_api_keys_others')
     permissions = Attribute(permission='view_api_keys_others')

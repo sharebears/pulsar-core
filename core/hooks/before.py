@@ -40,7 +40,7 @@ def check_api_key() -> None:
         if api_key and api_key.check_key(raw_key[10:]) and not api_key.revoked:
             if not api_key.permanent:
                 time_since = datetime.utcnow().replace(tzinfo=pytz.utc) - api_key.last_used
-                if time_since.total_seconds() > app.config['IMPERMANENT_API_KEY_LIFETIME']:
+                if time_since.total_seconds() > api_key.timeout:
                     api_key.revoked = True
                     db.session.commit()
                     raise _401Exception

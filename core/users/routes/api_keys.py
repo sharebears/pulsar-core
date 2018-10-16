@@ -88,6 +88,7 @@ CREATE_API_KEY_SCHEMA = Schema({
     'username': str,
     'password': str,
     'permanent': bool,
+    'timeout': int,
     'permissions': PermissionsListOfUser,
     })
 
@@ -97,6 +98,7 @@ CREATE_API_KEY_SCHEMA = Schema({
 def create_api_key(username: str = None,
                    password: str = None,
                    permanent: bool = False,
+                   timeout: int = 60 * 30,
                    permissions: List[str] = None) -> flask.Response:
     """
     Creates an API key for use. Keys are unrecoverable after generation;
@@ -113,7 +115,8 @@ def create_api_key(username: str = None,
        {
          "username": "lights",
          "password": "12345",
-         "permanent": false
+         "permanent": false,
+         "timeout": 7200
        }
 
     **Example response**:
@@ -150,6 +153,7 @@ def create_api_key(username: str = None,
         flask.request.remote_addr,
         flask.request.user_agent.string,
         permanent,
+        timeout,
         permissions)
     return flask.jsonify({
         'hash': api_key.hash,

@@ -63,6 +63,8 @@ def test_serialize_detailed(app, authed_client):
         'ip': '0.0.0.0',
         'user_agent': None,
         'revoked': True,
+        'permanent': False,
+        'timeout': 3600,
         'permissions': [],
         })
     assert 'last_used' in data and isinstance(data['last_used'], int)
