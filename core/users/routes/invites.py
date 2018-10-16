@@ -2,8 +2,8 @@ import flask
 from voluptuous import Email, Optional, Schema
 
 from core import APIException, db
-from core.users.models import Invite
-from core.utils import choose_user, require_permission, validate_data
+from core.users.models import Invite, User
+from core.utils import access_other_user, require_permission, validate_data
 from core.validators import BoolGET
 
 from . import bp
@@ -57,12 +57,12 @@ VIEW_INVITES_SCHEMA = Schema({
 
 
 @bp.route('/invites', methods=['GET'])
-@bp.route('/invites/user/<int:user_id>', methods=['GET'])
 @require_permission('view_invites')
+@access_other_user('view_invites_others')
 @validate_data(VIEW_INVITES_SCHEMA)
-def view_invites(used: bool,
-                 include_dead: bool,
-                 user_id: int = None) -> flask.Response:
+def view_invites(user: User,
+                 used: bool,
+                 include_dead: bool) -> flask.Response:
     """
     View sent invites. If a user_id is specified, only invites sent by that user
     will be returned, otherwise only your invites are returned. If requester has
@@ -91,7 +91,6 @@ def view_invites(used: bool,
     :statuscode 200: View successful
     :statuscode 403: User does not have permission to view user's invites
     """
-    user = choose_user(user_id, 'view_invites_others')
     invites = Invite.from_inviter(user.id, include_dead=include_dead, used=used)
     return flask.jsonify(invites)
 

@@ -3,16 +3,17 @@ from voluptuous import All, In, Range, Schema
 
 from core import APIException, db
 from core.notifications.models import Notification
-from core.utils import choose_user, require_permission, validate_data
+from core.utils import access_other_user, require_permission, validate_data
+from core.users.models import User
 from core.validators import BoolGET
 
 from . import bp
 
 
 @bp.route('/notifications', methods=['GET'])
-@bp.route('/notifications/user/<int:user_id>', methods=['GET'])
 @require_permission('notifications_view')
-def view_notifications(user_id: int = None):
+@access_other_user('notifications_view_others')
+def view_notifications(user: User):
     """
     View all pending notifications for a user. This includes thread subscriptions,
     collage notifications, torrent notifications, and inbox messages. Requires the
@@ -44,7 +45,6 @@ def view_notifications(user_id: int = None):
     :statuscode 200: Successfully viewed notifications.
     :statuscode 403: User does not have access to view notifications.
     """
-    user = choose_user(user_id, 'notifications_view_others')
     return flask.jsonify(Notification.get_all_unread(user.id))
 
 
@@ -56,11 +56,11 @@ VIEW_NOTIFICATION_SCHEMA = Schema({
 
 
 @bp.route('/notifications/<type>', methods=['GET'])
-@bp.route('/notifications/<type>/user/<int:user_id>', methods=['GET'])
 @require_permission('notifications_view')
 @validate_data(VIEW_NOTIFICATION_SCHEMA)
+@access_other_user('view_notifications_others')
 def view_notification_type(type: str,
-                           user_id: int = None,
+                           user: User,
                            page: int = 1,
                            limit: int = 50,
                            include_read: bool = False):
@@ -101,7 +101,6 @@ def view_notification_type(type: str,
     :statuscode 400: Notification type is invalid.
     :statuscode 403: User does not have access to view notifications.
     """
-    user = choose_user(user_id, 'view_notifications_others')
     return flask.jsonify(Notification.from_type(user.id, type, include_read=include_read))
 
 
@@ -112,13 +111,12 @@ MODIFY_NOTIFICATION_SCHEMA = Schema({
 
 @bp.route('/notifications', methods=['PUT'])
 @bp.route('/notifications/<type>', methods=['PUT'])
-@bp.route('/notifications/user/<int:user_id>', methods=['PUT'])
-@bp.route('/notifications/<type>/user/<int:user_id>', methods=['PUT'])
 @require_permission('notifications_modify')
 @validate_data(MODIFY_NOTIFICATION_SCHEMA)
+@access_other_user('notifications_modify_others')
 def clear_notifications(read: bool,
-                        type: str = None,
-                        user_id: int = None):
+                        user: User,
+                        type: str = None):
     """
     Clear a user's notifications; optionally of a specific type. Requires the
     ``notifications_modify`` permission. Clearing another user's notifications
@@ -142,7 +140,6 @@ def clear_notifications(read: bool,
     """
     if not read:
         raise APIException('You cannot set all notifications to unread.')
-    user = choose_user(user_id, 'notifications_modify_others')
     Notification.update_many(
         pks=Notification.get_pks_from_type(user.id, type, include_read=False),
         update={'read': True})

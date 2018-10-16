@@ -1,10 +1,11 @@
 from functools import wraps
+from werkzeug.datastructures import MultiDict
 from typing import Callable, Optional, List
 
 import flask
 from werkzeug import find_modules, import_string
 
-from core import _312Exception, _401Exception, _403Exception, _404Exception
+from core import _312Exception, _401Exception, _403Exception, _404Exception, APIException
 
 app = flask.current_app
 
@@ -45,13 +46,11 @@ def require_permission(permission: str,
         def new_function(*args, **kwargs) -> Callable:
             if not flask.g.user:
                 raise _401Exception
-
-            if not flask.g.user.has_permission(permission):
+            elif not flask.g.user.has_permission(permission):
                 if flask.g.user.locked and not masquerade:
                     raise _312Exception(lock=True)
                 raise _403Exception(masquerade=masquerade)
-
-            if flask.g.api_key and not flask.g.api_key.has_permission(permission):
+            elif flask.g.api_key and not flask.g.api_key.has_permission(permission):
                 raise _403Exception(message='This APIKey does not have permission to '
                                     'access this resource.')
             return func(*args, **kwargs)
@@ -59,15 +58,13 @@ def require_permission(permission: str,
     return wrapper
 
 
-def choose_user(user_id: Optional[int],
-                permission: str):  # -> User
+def access_other_user(permission: str) -> Callable:
     """
-    Takes a user_id and a permission. If the user_id is specified, the user with that
-    user id is fetched and then returned if the requesting user has the given permission.
-    Otherwise, the requester's user is returned. This function needs to be behind a
-    ``@require_permission`` decorated view.
+    Takes a permission. The user_id is taken from the query string. If the user_id
+    is specified, the user with that user id is fetched and then returned if the
+    requesting user has the given permission.  Otherwise, the requester's user is
+    returned. This decorator needs to be below a ``@require_permission`` decorated view.
 
-    :param user_id:        The user_id of the requested user.
     :param permission:     The permission needed to get the other user's user object.
 
     :return:               The chosen user
@@ -75,14 +72,29 @@ def choose_user(user_id: Optional[int],
     :raises _404Exception: The requested user does not exist
     """
     from core.users.models import User
-    if user_id and flask.g.user.id != user_id:
-        if flask.g.user.has_permission(permission):
-            user = User.from_pk(user_id)
-            if user:
-                return user
-            raise _404Exception(f'User {user_id}')
-        raise _403Exception
-    return flask.g.user
+
+    def wrapper(func: Callable) -> Callable:
+        @wraps(func)
+        def new_function(*args, **kwargs) -> Callable:
+            try:
+                user_id = int(flask.request.args.to_dict().get('user_id', flask.g.user.id))
+            except ValueError:
+                raise APIException('User ID must be an integer.')
+
+            # Remove user_id from the query string because validator will choke on it.
+            flask.request.args = MultiDict(
+                [(e, v) for e, v in flask.request.args.to_dict().items() if e != 'user_id'])
+            if user_id == flask.g.user.id:
+                return func(*args, user=flask.g.user, **kwargs)
+            if permission:
+                if not flask.g.user.has_permission(permission):
+                    raise _403Exception
+                elif flask.g.api_key and not flask.g.api_key.has_permission(permission):
+                    raise _403Exception(message='This APIKey does not have permission to '
+                                        'access this resource.')
+            return func(*args, user=User.from_pk(user_id, _404=True), **kwargs)
+        return new_function
+    return wrapper
 
 
 def assert_user(user_id: int,

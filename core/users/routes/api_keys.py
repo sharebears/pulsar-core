@@ -5,7 +5,7 @@ from voluptuous import Optional, Schema
 
 from core import APIException, _401Exception, db
 from core.users.models import APIKey, User
-from core.utils import choose_user, require_permission, validate_data
+from core.utils import access_other_user, require_permission, validate_data
 from core.validators import BoolGET, PermissionsListOfUser
 
 from . import bp
@@ -47,11 +47,11 @@ VIEW_ALL_API_KEYS_SCHEMA = Schema({
 
 
 @bp.route('/api_keys', methods=['GET'])
-@bp.route('/api_keys/user/<int:user_id>', methods=['GET'])
 @require_permission('view_api_keys')
+@access_other_user('view_api_keys_others')
 @validate_data(VIEW_ALL_API_KEYS_SCHEMA)
-def view_all_api_keys(include_dead: bool,
-                      user_id: int = None) -> flask.Response:
+def view_all_api_keys(user: User,
+                      include_dead: bool) -> flask.Response:
     """
     View all API keys of a user. Requires the ``view_api_keys`` permission to view
     one's own API keys, and the ``view_api_keys_others`` permission to view
@@ -79,7 +79,6 @@ def view_all_api_keys(include_dead: bool,
     :statuscode 403: User does not have permission to view user's API keys
     :statuscode 404: User does not exist
     """
-    user = choose_user(user_id, 'view_api_keys_others')
     api_keys = APIKey.from_user(user.id, include_dead=include_dead)
     return flask.jsonify(api_keys)
 
@@ -207,9 +206,9 @@ def revoke_api_key(hash: str) -> flask.Response:
 
 
 @bp.route('/api_keys', methods=['DELETE'])
-@bp.route('/api_keys/user/<int:user_id>', methods=['DELETE'])
 @require_permission('revoke_api_keys')
-def revoke_all_api_keys(user_id: int = None) -> flask.Response:
+@access_other_user('revoke_api_keys_others')
+def revoke_all_api_keys(user: User) -> flask.Response:
     """
     Revokes all API keys currently in use by the user. Requires the
     ``revoke_api_keys`` permission to revoke one's own API keys, and the
@@ -229,7 +228,6 @@ def revoke_all_api_keys(user_id: int = None) -> flask.Response:
     :statuscode 200: Successfully revoked API keys
     :statuscode 403: User does not have permission to revoke API keys
     """
-    user = choose_user(user_id, 'revoke_api_keys_others')
     APIKey.update_many(
         pks=APIKey.hashes_from_user(user.id),
         update={'revoked': True})

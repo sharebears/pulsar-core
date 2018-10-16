@@ -67,7 +67,7 @@ def test_view_invites_used(app, authed_client):
 def test_view_invites_of_nonexistent_user(app, authed_client):
     """Viewing the invites of a nonexistent user should raise a 404."""
     add_permissions(app, 'view_invites', 'view_invites_others')
-    response = authed_client.get('/invites/user/99')
+    response = authed_client.get('/invites', query_string={'user_id': 99})
     check_json_response(response, 'User 99 does not exist.')
 
 
@@ -167,7 +167,6 @@ def test_revoke_invite_others_failure(app, authed_client):
 @pytest.mark.parametrize(
     'endpoint, method', [
         ('/invites', 'GET'),
-        ('/invites/user/1', 'GET'),
         ('/invites', 'POST'),
     ])
 def test_route_permissions(authed_client, endpoint, method):
