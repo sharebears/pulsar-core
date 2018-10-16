@@ -65,7 +65,7 @@ def test_view_all_keys_cached(app, authed_client):
 def test_view_empty_api_keys(app, authed_client):
     add_permissions(app, 'view_api_keys', 'view_api_keys_others')
     response = authed_client.get(
-        '/api_keys/user/3', query_string={'include_dead': False})
+        '/api_keys', query_string={'user_id': 3, 'include_dead': False})
     check_json_response(response, [], list_=True, strict=True)
 
 
@@ -113,14 +113,15 @@ def test_revoke_api_key_not_mine(app, authed_client):
     check_json_response(response, 'APIKey 1234567890 does not exist.')
 
 
-@pytest.mark.parametrize(
-    'endpoint', [
-        '/api_keys',
-        '/api_keys/user/2',
-    ])
-def test_revoke_all_api_keys(app, authed_client, endpoint):
+def test_revoke_all_api_keys(app, authed_client):
+    add_permissions(app, 'revoke_api_keys')
+    response = authed_client.delete('/api_keys')
+    check_json_response(response, 'All api keys have been revoked.')
+
+
+def test_revoke_all_api_keys_other(app, authed_client):
     add_permissions(app, 'revoke_api_keys', 'revoke_api_keys_others')
-    response = authed_client.delete(endpoint)
+    response = authed_client.delete('/api_keys', query_string={'user_id': 2})
     check_json_response(response, 'All api keys have been revoked.')
 
 

@@ -87,7 +87,7 @@ def test_edit_settings_pw_fail(app, authed_client):
 
 def test_edit_settings_others(app, authed_client):
     add_permissions(app, 'edit_settings', 'change_password', 'moderate_users')
-    response = authed_client.put('/users/2/settings', data=json.dumps({
+    response = authed_client.put('/users/settings', query_string={'user_id': 2}, data=json.dumps({
         }))
     check_json_response(response, 'Settings updated.', strict=True)
 

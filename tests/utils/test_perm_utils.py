@@ -2,7 +2,7 @@ import flask
 import pytest
 
 from conftest import add_permissions, check_json_response
-from core.utils import assert_permission, assert_user, choose_user
+from core.utils import assert_permission, assert_user, access_other_user
 
 
 @pytest.mark.parametrize(
@@ -44,22 +44,44 @@ def test_assert_permission(app, authed_client, permission, masquerade, expected)
     check_json_response(response, expected)
 
 
-def test_choose_user(app, authed_client):
-    @app.route('/test_choose_user')
-    def test_choose_user():
-        choose_user(1, 'non-existent-perm')
-        choose_user(2, 'sample_perm_one')
+def test_access_other_user_but_same_user(app, authed_client):
+    @app.route('/test_access')
+    @access_other_user('non-existent-perm')
+    def test_access(user):
+        assert user.id == 1
         return flask.jsonify('Endpoint reached.')
 
-    response = authed_client.get('/test_choose_user')
+    response = authed_client.get('/test_access', query_string={'user_id': 1})
     check_json_response(response, 'Endpoint reached.')
 
 
-def test_choose_user_fail(app, authed_client):
-    @app.route('/test_choose_user')
-    def test_choose_user():
-        choose_user(2, 'non-existent-perm')
+def test_access_other_user(app, authed_client):
+    @app.route('/test_access')
+    @access_other_user('sample_perm_one')
+    def test_access(user):
+        assert user.id == 2
         return flask.jsonify('Endpoint reached.')
 
-    response = authed_client.get('/test_choose_user')
+    response = authed_client.get('/test_access', query_string={'user_id': 2})
+    check_json_response(response, 'Endpoint reached.')
+
+
+def test_access_other_user_malformed(app, authed_client):
+    @app.route('/test_access')
+    @access_other_user('sample_perm_one')
+    def test_access(user):
+        assert user.id == 2
+        return flask.jsonify('Endpoint reached.')
+
+    response = authed_client.get('/test_access', query_string={'user_id': 'abc'})
+    check_json_response(response, 'User ID must be an integer.')
+
+
+def test_access_other_user_fail(app, authed_client):
+    @app.route('/test_access')
+    @access_other_user('nonexistent_perm')
+    def test_access_user(user):
+        return flask.jsonify('Endpoint reached.')
+
+    response = authed_client.get('/test_access', query_string={'user_id': 2})
     check_json_response(response, 'You do not have permission to access this resource.')
