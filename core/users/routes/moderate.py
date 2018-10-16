@@ -7,7 +7,7 @@ from voluptuous.validators import Match
 from core import APIException, cache, db
 from core.permissions.models import UserPermission
 from core.users.models import User
-from core.utils import get_all_permissions, require_permission, validate_data
+from core.utils import require_permission, validate_data
 from core.validators import PASSWORD_REGEX, PermissionsDict, check_permissions
 
 from . import bp
@@ -109,9 +109,8 @@ def change_user_permissions(user: User,
     :raises APIException: Invalid permissions to change
     """
     to_add, to_ungrant, to_delete = check_permissions(user, permissions)
-    existing_permissions = get_all_permissions()
     for p in to_ungrant:
-        if p not in existing_permissions:
+        if not UserPermission.is_valid_permission(p):
             raise APIException(f'{p} is not a valid permission.')
     alter_permissions(user, to_add, to_ungrant, to_delete)
     cache.delete(user.__cache_key_permissions__.format(id=user.id))
