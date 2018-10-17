@@ -1,4 +1,5 @@
 import flask
+from core.users.permissions import UserPermissions
 from voluptuous import All, Length, Match, Schema
 
 from core import _401Exception, _403Exception, db
@@ -20,9 +21,9 @@ SETTINGS_SCHEMA = Schema({
 
 
 @bp.route('/users/settings', methods=['PUT'])
-@require_permission('users_edit_settings')
+@require_permission(UserPermissions.EDIT_SETTINGS)
 @validate_data(SETTINGS_SCHEMA)
-@access_other_user('users_moderate')
+@access_other_user(UserPermissions.MODERATE)
 def users_edit_settings(user: User,
                         existing_password: str =None,
                         new_password: str =None) -> flask.Response:
@@ -63,7 +64,7 @@ def users_edit_settings(user: User,
     :statuscode 403: User does not have permission to change user's settings
     """
     if new_password:
-        if not flask.g.user.has_permission('users_change_password'):
+        if not flask.g.user.has_permission(UserPermissions.CHANGE_PASS):
             raise _403Exception(
                 message='You do not have permission to change this password.')
         if not existing_password or not user.check_password(existing_password):

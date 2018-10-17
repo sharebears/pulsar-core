@@ -8,6 +8,7 @@ from core import APIException, db
 from core.permissions.models import SecondaryClass, UserClass
 from core.utils import require_permission, validate_data
 from core.validators import BoolGET, PermissionsDict, PermissionsList
+from core.permissions.permissions import UserclassPermissions
 
 from . import bp
 
@@ -19,7 +20,7 @@ VIEW_USER_CLASS_SCHEMA = Schema({
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['GET'])
-@require_permission('userclasses_modify')
+@require_permission(UserclassPermissions.MODIFY)
 @validate_data(VIEW_USER_CLASS_SCHEMA)
 def view_user_class(user_class_id: int,
                     secondary: bool = False) -> flask.Response:
@@ -47,7 +48,7 @@ def view_user_class(user_class_id: int,
 
 
 @bp.route('/user_classes', methods=['GET'])
-@require_permission('userclasses_list')
+@require_permission(UserclassPermissions.LIST)
 @validate_data(VIEW_USER_CLASS_SCHEMA)
 def view_multiple_user_classes(secondary: bool = False) -> flask.Response:
     """
@@ -88,7 +89,7 @@ CREATE_USER_CLASS_SCHEMA = Schema({
 
 
 @bp.route('/user_classes', methods=['POST'])
-@require_permission('userclasses_modify')
+@require_permission(UserclassPermissions.MODIFY)
 @validate_data(CREATE_USER_CLASS_SCHEMA)
 def create_user_class(name: str,
                       permissions: List[str],
@@ -140,7 +141,7 @@ def create_user_class(name: str,
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['DELETE'])
-@require_permission('userclasses_modify')
+@require_permission(UserclassPermissions.MODIFY)
 def delete_user_class(user_class_id: int) -> flask.Response:
     """
     Create a new user class. Requires the ``userclasses_modify`` permission.
@@ -197,7 +198,7 @@ MODIFY_USER_CLASS_SCHEMA = Schema({
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['PUT'])
-@require_permission('userclasses_modify')
+@require_permission(UserclassPermissions.MODIFY)
 @validate_data(MODIFY_USER_CLASS_SCHEMA)
 def modify_user_class(user_class_id: int,
                       permissions: Dict[str, bool],

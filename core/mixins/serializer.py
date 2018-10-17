@@ -1,4 +1,5 @@
 import inspect
+from enum import Enum
 from typing import Dict, Union
 from core.mixins.base import BaseFunctionalityMixin
 
@@ -14,7 +15,7 @@ class Attribute:
     """
 
     def __init__(self,
-                 permission: str = None,
+                 permission: Union[str, Enum] = None,
                  self_access: bool = True,
                  default: bool = True,
                  nested: Union[bool, tuple] = True) -> None:

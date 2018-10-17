@@ -2,6 +2,7 @@ import os
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
+from enum import Enum
 from typing import Any, Callable, List
 
 import flask
@@ -77,6 +78,7 @@ def check_dictionary(response, expected, list_=False, strict=False):
 def add_permissions(app_, *permissions):
     "Insert permissions into database for user_id 1 (authed user)."
     assert isinstance(app_, flask.Flask)
+    permissions = [p if not isinstance(p, Enum) else p.value for p in permissions]
     db.engine.execute(
         f"""INSERT INTO users_permissions (user_id, permission) VALUES
         (1, '""" + "'), (1, '".join(permissions) + "')")

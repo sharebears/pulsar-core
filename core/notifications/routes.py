@@ -6,13 +6,14 @@ from core.notifications.models import Notification
 from core.utils import access_other_user, require_permission, validate_data
 from core.users.models import User
 from core.validators import BoolGET
+from core.notifications.permissions import NotificationPermissions
 
 from . import bp
 
 
 @bp.route('/notifications', methods=['GET'])
-@require_permission('notifications_view')
-@access_other_user('notifications_view_others')
+@require_permission(NotificationPermissions.VIEW)
+@access_other_user(NotificationPermissions.VIEW_OTHERS)
 def view_notifications(user: User):
     """
     View all pending notifications for a user. This includes thread subscriptions,
@@ -56,9 +57,9 @@ VIEW_NOTIFICATION_SCHEMA = Schema({
 
 
 @bp.route('/notifications/<type>', methods=['GET'])
-@require_permission('notifications_view')
+@require_permission(NotificationPermissions.VIEW)
 @validate_data(VIEW_NOTIFICATION_SCHEMA)
-@access_other_user('notifications_view_others')
+@access_other_user(NotificationPermissions.VIEW_OTHERS)
 def view_notification_type(type: str,
                            user: User,
                            page: int = 1,
@@ -111,9 +112,9 @@ MODIFY_NOTIFICATION_SCHEMA = Schema({
 
 @bp.route('/notifications', methods=['PUT'])
 @bp.route('/notifications/<type>', methods=['PUT'])
-@require_permission('notifications_modify')
+@require_permission(NotificationPermissions.MODIFY)
 @validate_data(MODIFY_NOTIFICATION_SCHEMA)
-@access_other_user('notifications_modify_others')
+@access_other_user(NotificationPermissions.MODIFY_OTHERS)
 def clear_notifications(read: bool,
                         user: User,
                         type: str = None):
@@ -148,7 +149,7 @@ def clear_notifications(read: bool,
 
 
 @bp.route('/notifications/<int:id>', methods=['PUT'])
-@require_permission('notifications_modify')
+@require_permission(NotificationPermissions.MODIFY)
 @validate_data(MODIFY_NOTIFICATION_SCHEMA)
 def modify_notification(id: int, read: bool):
     """
@@ -173,7 +174,7 @@ def modify_notification(id: int, read: bool):
     :statuscode 403: User does not have permission to modify notifications.
     :statuscode 404: Notification does not exist.
     """
-    noti = Notification.from_pk(id, asrt='notifications_modify_others', error=True)
+    noti = Notification.from_pk(id, asrt=NotificationPermissions.MODIFY_OTHERS, error=True)
     noti.read = read
     db.session.commit()
     Notification.clear_cache_keys(noti.user_id, noti.type)

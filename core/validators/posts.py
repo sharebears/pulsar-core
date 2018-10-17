@@ -1,5 +1,6 @@
 import flask
 from voluptuous import Length, LengthInvalid
+from core.users.permissions import SitePermissions
 
 
 class PostLength(Length):
@@ -10,7 +11,7 @@ class PostLength(Length):
         if (self.max is not None
                 and len(v) > self.max
                 and (flask.g.user is None
-                     or not flask.g.user.has_permission('site_no_post_length_limit'))):
+                     or not flask.g.user.has_permission(SitePermissions.NO_POST_LENGTH_LIMIT))):
             raise LengthInvalid(
                 self.msg or f'length of value can be at most {self.max}')
         return v

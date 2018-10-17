@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from enum import Enum
 
 import flask
 from flask_sqlalchemy import BaseQuery, Model
@@ -41,7 +42,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
                 include_dead: bool = False,
                 _404: bool = False,
                 error: bool = False,
-                asrt: str = None) -> Optional[MDL]:
+                asrt: Union[str, Enum] = None) -> Optional[MDL]:
                 # TODO fix response type, this is why we are static optional.
         """
         Default classmethod constructor to get an object by its PK ID.
@@ -160,7 +161,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
                  order: BinaryExpression = None,
                  required_properties: tuple = (),
                  include_dead: bool = False,
-                 asrt: str = None,
+                 asrt: Union[str, Enum] = None,
                  page: int = None,
                  limit: Optional[int] = 50,
                  reverse: bool = False,
@@ -408,7 +409,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         return count
 
     def can_access(self,
-                   permission: str = None,
+                   permission: Union[str, Enum] = None,
                    error: bool = False) -> bool:
         """
         Determines whether or not the requesting user can access the following resource.

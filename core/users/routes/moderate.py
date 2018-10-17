@@ -9,6 +9,7 @@ from core.permissions.models import UserPermission
 from core.users.models import User
 from core.utils import require_permission, validate_data
 from core.validators import PASSWORD_REGEX, PermissionsDict, check_permissions
+from core.users.permissions import UserPermissions
 
 from . import bp
 
@@ -22,12 +23,12 @@ MODERATE_USER_SCHEMA = Schema({
     'uploaded': All(int, Range(min=0, max=9223372036854775808)),
     'downloaded': All(int, Range(min=0, max=9223372036854775808)),
     'invites': All(int, Range(min=0, max=2147483648)),
-    'permissions': PermissionsDict(restrict='users_moderate_advanced'),
+    'permissions': PermissionsDict(restrict=UserPermissions.MODERATE_ADVANCED),
     })
 
 
 @bp.route('/users/<int:user_id>', methods=['PUT'])
-@require_permission('users_moderate')
+@require_permission(UserPermissions.MODERATE)
 @validate_data(MODERATE_USER_SCHEMA)
 def moderate_user(user_id: int,
                   email: str = None,

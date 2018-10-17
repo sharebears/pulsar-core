@@ -2,6 +2,7 @@ from typing import List
 
 import flask
 from voluptuous import Optional, Schema
+from core.users.permissions import ApikeyPermissions
 
 from core import APIException, _401Exception, db
 from core.users.models import APIKey, User
@@ -14,7 +15,7 @@ app = flask.current_app
 
 
 @bp.route('/api_keys/<hash>', methods=['GET'])
-@require_permission('api_keys_view')
+@require_permission(ApikeyPermissions.VIEW)
 def view_api_key(hash: str) -> flask.Response:
     """
     View info of an API key. Requires the ``api_keys_view`` permission to view
@@ -38,7 +39,7 @@ def view_api_key(hash: str) -> flask.Response:
     :statuscode 404: API key does not exist.
     """
     return flask.jsonify(APIKey.from_pk(
-        hash, include_dead=True, _404=True, asrt='api_keys_view_others'))
+        hash, include_dead=True, _404=True, asrt=ApikeyPermissions.VIEW_OTHERS))
 
 
 VIEW_ALL_API_KEYS_SCHEMA = Schema({
@@ -47,8 +48,8 @@ VIEW_ALL_API_KEYS_SCHEMA = Schema({
 
 
 @bp.route('/api_keys', methods=['GET'])
-@require_permission('api_keys_view')
-@access_other_user('api_keys_view_others')
+@require_permission(ApikeyPermissions.VIEW)
+@access_other_user(ApikeyPermissions.VIEW_OTHERS)
 @validate_data(VIEW_ALL_API_KEYS_SCHEMA)
 def view_all_api_keys(user: User,
                       include_dead: bool) -> flask.Response:
@@ -162,7 +163,7 @@ def create_api_key(username: str = None,
 
 
 @bp.route('/api_keys/<hash>', methods=['DELETE'])
-@require_permission('api_keys_revoke')
+@require_permission(ApikeyPermissions.REVOKE)
 def revoke_api_key(hash: str) -> flask.Response:
     """
     Revokes an API key currently in use by the user. Requires the
@@ -197,7 +198,7 @@ def revoke_api_key(hash: str) -> flask.Response:
         to revoke the API key
     """
     api_key = APIKey.from_pk(
-        hash, include_dead=True, _404=True, asrt='api_keys_revoke_others')
+        hash, include_dead=True, _404=True, asrt=ApikeyPermissions.REVOKE_OTHERS)
     if api_key.revoked:
         raise APIException(f'APIKey {hash} is already revoked.')
     api_key.revoked = True
@@ -206,8 +207,8 @@ def revoke_api_key(hash: str) -> flask.Response:
 
 
 @bp.route('/api_keys', methods=['DELETE'])
-@require_permission('api_keys_revoke')
-@access_other_user('api_keys_revoke_others')
+@require_permission(ApikeyPermissions.REVOKE)
+@access_other_user(ApikeyPermissions.REVOKE_OTHERS)
 def revoke_all_api_keys(user: User) -> flask.Response:
     """
     Revokes all API keys currently in use by the user. Requires the

@@ -1,4 +1,5 @@
 import json
+from core.users.permissions import ApikeyPermissions
 from datetime import datetime, timedelta
 
 import flask
@@ -21,19 +22,19 @@ def hex_generator(_):
         ('notrealkey', 'APIKey notrealkey does not exist.'),
     ])
 def test_view_api_key(app, authed_client, key, expected):
-    add_permissions(app, 'api_keys_view')
+    add_permissions(app, ApikeyPermissions.VIEW)
     response = authed_client.get(f'/api_keys/{key}')
     check_json_response(response, expected)
 
 
 def test_view_api_key_other(app, authed_client):
-    add_permissions(app, 'api_keys_view', 'api_keys_view_others')
+    add_permissions(app, ApikeyPermissions.VIEW, ApikeyPermissions.VIEW_OTHERS)
     response = authed_client.get(f'/api_keys/1234567890')
     check_json_response(response, {'hash': '1234567890', 'revoked': True})
 
 
 def test_view_api_key_cached(app, authed_client):
-    add_permissions(app, 'api_keys_view', 'api_keys_view_others')
+    add_permissions(app, ApikeyPermissions.VIEW, ApikeyPermissions.VIEW_OTHERS)
     api_key = APIKey.from_pk('1234567890', include_dead=True)
     cache_key = cache.cache_model(api_key, timeout=60)
 
@@ -43,7 +44,7 @@ def test_view_api_key_cached(app, authed_client):
 
 
 def test_view_all_keys(app, authed_client):
-    add_permissions(app, 'api_keys_view')
+    add_permissions(app, ApikeyPermissions.VIEW)
     response = authed_client.get('/api_keys')
     data = response.get_json()['response']
     assert any('hash' in api_key and api_key['hash'] == CODE_2[:10]
@@ -51,7 +52,7 @@ def test_view_all_keys(app, authed_client):
 
 
 def test_view_all_keys_cached(app, authed_client):
-    add_permissions(app, 'api_keys_view')
+    add_permissions(app, ApikeyPermissions.VIEW)
     cache_key = APIKey.__cache_key_of_user__.format(user_id=1)
     cache.set(cache_key, ['abcdefghij', 'bcdefghijk'], timeout=60)
 
@@ -63,7 +64,7 @@ def test_view_all_keys_cached(app, authed_client):
 
 
 def test_view_empty_api_keys(app, authed_client):
-    add_permissions(app, 'api_keys_view', 'api_keys_view_others')
+    add_permissions(app, ApikeyPermissions.VIEW, ApikeyPermissions.VIEW_OTHERS)
     response = authed_client.get(
         '/api_keys', query_string={'user_id': 3, 'include_dead': False})
     check_json_response(response, [], list_=True, strict=True)
@@ -102,25 +103,25 @@ def test_create_api_key_with_permissions(app, authed_client, monkeypatch):
          'APIKey \x02\xb0\xc0AZ\xf2\x99\x22\x8b\xdc does not exist.'),
     ])
 def test_revoke_api_key(app, authed_client, identifier, message):
-    add_permissions(app, 'api_keys_revoke', 'api_keys_revoke_others')
+    add_permissions(app, ApikeyPermissions.REVOKE, ApikeyPermissions.REVOKE_OTHERS)
     response = authed_client.delete(f'/api_keys/{identifier}')
     check_json_response(response, message)
 
 
 def test_revoke_api_key_not_mine(app, authed_client):
-    add_permissions(app, 'api_keys_revoke')
+    add_permissions(app, ApikeyPermissions.REVOKE)
     response = authed_client.delete('/api_keys/1234567890')
     check_json_response(response, 'APIKey 1234567890 does not exist.')
 
 
 def test_revoke_all_api_keys(app, authed_client):
-    add_permissions(app, 'api_keys_revoke')
+    add_permissions(app, ApikeyPermissions.REVOKE)
     response = authed_client.delete('/api_keys')
     check_json_response(response, 'All api keys have been revoked.')
 
 
 def test_revoke_all_api_keys_other(app, authed_client):
-    add_permissions(app, 'api_keys_revoke', 'api_keys_revoke_others')
+    add_permissions(app, ApikeyPermissions.REVOKE, ApikeyPermissions.REVOKE_OTHERS)
     response = authed_client.delete('/api_keys', query_string={'user_id': 2})
     check_json_response(response, 'All api keys have been revoked.')
 

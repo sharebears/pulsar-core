@@ -5,6 +5,7 @@ from core import APIException, db
 from core.users.models import Invite, User
 from core.utils import access_other_user, require_permission, validate_data
 from core.validators import BoolGET
+from core.users.permissions import InvitePermissions
 
 from . import bp
 
@@ -12,7 +13,7 @@ app = flask.current_app
 
 
 @bp.route('/invites/<code>', methods=['GET'])
-@require_permission('invites_view')
+@require_permission(InvitePermissions.VIEW)
 def view_invite(code: str) -> flask.Response:
     """
     View the details of an invite. Requires the ``invites_view`` permission.
@@ -47,7 +48,7 @@ def view_invite(code: str) -> flask.Response:
     :statuscode 404: Invite does not exist or user cannot view invite
     """
     return flask.jsonify(Invite.from_pk(
-        code, include_dead=True, _404=True, asrt='invites_view_others'))
+        code, include_dead=True, _404=True, asrt=InvitePermissions.VIEW_OTHERS))
 
 
 VIEW_INVITES_SCHEMA = Schema({
@@ -57,8 +58,8 @@ VIEW_INVITES_SCHEMA = Schema({
 
 
 @bp.route('/invites', methods=['GET'])
-@require_permission('invites_view')
-@access_other_user('invites_view_others')
+@require_permission(InvitePermissions.VIEW)
+@access_other_user(InvitePermissions.VIEW_OTHERS)
 @validate_data(VIEW_INVITES_SCHEMA)
 def invites_view(user: User,
                  used: bool,
@@ -101,7 +102,7 @@ USER_INVITE_SCHEMA = Schema({
 
 
 @bp.route('/invites', methods=['POST'])
-@require_permission('invites_send')
+@require_permission(InvitePermissions.SEND)
 @validate_data(USER_INVITE_SCHEMA)
 def invite_user(email: str):
     """
@@ -152,7 +153,7 @@ def invite_user(email: str):
 
 
 @bp.route('/invites/<code>', methods=['DELETE'])
-@require_permission('invites_revoke')
+@require_permission(InvitePermissions.REVOKE)
 def revoke_invite(code: str) -> flask.Response:
     """
     Revokes an active invite code, preventing it from being used. The
@@ -185,7 +186,7 @@ def revoke_invite(code: str) -> flask.Response:
     :statuscode 403: Unauthorized to revoke invites
     :statuscode 404: Invite does not exist or user cannot view invite
     """
-    invite = Invite.from_pk(code, _404=True, asrt='invites_revoke_others')
+    invite = Invite.from_pk(code, _404=True, asrt=InvitePermissions.REVOKE_OTHERS)
     invite.expired = True
     invite.inviter.invites += 1
     db.session.commit()

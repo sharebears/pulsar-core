@@ -1,15 +1,16 @@
 from functools import wraps
-from typing import Callable, Optional
+from typing import Callable, Union
 
 import flask
 from werkzeug.datastructures import MultiDict
+from enum import Enum
 
 from core import _312Exception, _401Exception, _403Exception, _404Exception, APIException
 
 app = flask.current_app
 
 
-def require_permission(permission: str,
+def require_permission(permission: Union[str, Enum],
                        masquerade: bool = False) -> Callable:
     """
     Requires a user to have the specified permission to access the view function.
@@ -23,6 +24,8 @@ def require_permission(permission: str,
     :raises _403Exception: If an API Key is used and does not have enough permissions to
                            access the resource
     """
+    permission = permission.value if isinstance(permission, Enum) else permission
+
     def wrapper(func: Callable) -> Callable:
         @wraps(func)
         def new_function(*args, **kwargs) -> Callable:
@@ -40,7 +43,7 @@ def require_permission(permission: str,
     return wrapper
 
 
-def access_other_user(permission: str) -> Callable:
+def access_other_user(permission: Union[str, Enum]) -> Callable:
     """
     Takes a permission. The user_id is taken from the query string. If the user_id
     is specified, the user with that user id is fetched and then returned if the
@@ -53,6 +56,7 @@ def access_other_user(permission: str) -> Callable:
     :raises _403Exception: The requesting user does not have the specified permission
     :raises _404Exception: The requested user does not exist
     """
+    permission = permission.value if isinstance(permission, Enum) else permission
     from core.users.models import User
 
     def wrapper(func: Callable) -> Callable:
@@ -80,17 +84,19 @@ def access_other_user(permission: str) -> Callable:
 
 
 def assert_user(user_id: int,
-                permission: Optional[str] = None) -> bool:
+                permission: Union[str, Enum] = None) -> bool:
     """
     Assert that a user_id belongs to the requesting user, or that
     the requesting user has a given permission.
     """
+    permission = permission.value if isinstance(permission, Enum) else permission
     return (flask.g.user.id == user_id or flask.g.user.has_permission(permission))
 
 
-def assert_permission(permission: str,
+def assert_permission(permission: Union[str, Enum],
                       masquerade: bool = False) -> None:
     "Assert that the requesting user has a permission, raise a 403 if they do not."
+    permission = permission.value if isinstance(permission, Enum) else permission
     if not flask.g.user.has_permission(permission):
         if masquerade:
             raise _404Exception

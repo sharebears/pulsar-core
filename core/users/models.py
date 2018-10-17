@@ -1,4 +1,5 @@
 import secrets
+from enum import Enum
 from copy import copy
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
@@ -141,7 +142,8 @@ class User(db.Model, SinglePKMixin):
 
     def has_permission(self, permission: Optional[str]) -> bool:
         """Check whether a user has a permission."""
-        return bool(permission and permission in self.permissions)
+        p = permission.value if isinstance(permission, Enum) else permission
+        return bool(p and p in self.permissions)
 
 
 class Invite(db.Model, SinglePKMixin):
@@ -306,7 +308,7 @@ class APIKey(db.Model, SinglePKMixin):
         """
         return check_password_hash(self.keyhashsalt, key)
 
-    def has_permission(self, permission: str) -> bool:
+    def has_permission(self, permission: Union[str, Enum]) -> bool:
         """
         Checks if the API key is assigned a permission. If the API key
         is not assigned any permissions, it checks against the user's
@@ -315,8 +317,9 @@ class APIKey(db.Model, SinglePKMixin):
         :param permission: Permission to search for
         :return:           Whether or not the API Key has the permission
         """
+        p = permission.value if isinstance(permission, Enum) else permission
         if self.permissions:
-            return permission in self.permissions
+            return p in self.permissions
 
         user = User.from_pk(self.user_id)
-        return user.has_permission(permission)
+        return user.has_permission(p)

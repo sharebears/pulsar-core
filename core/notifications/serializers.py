@@ -1,10 +1,11 @@
 from core.mixins import Attribute, Serializer
+from core.notifications.permissions import NotificationPermissions
 
 
 class NotificationSerializer(Serializer):
-    id = Attribute(permission='notifications_view_others')
-    user_id = Attribute(permission='notifications_view_others')
-    type = Attribute(permission='notifications_view_others')
-    time = Attribute(permission='notifications_view_others')
-    contents = Attribute(permission='notifications_view_others')
-    read = Attribute(permission='notifications_view_others')
+    id = Attribute(permission=NotificationPermissions.VIEW_OTHERS)
+    user_id = Attribute(permission=NotificationPermissions.VIEW_OTHERS)
+    type = Attribute(permission=NotificationPermissions.VIEW_OTHERS)
+    time = Attribute(permission=NotificationPermissions.VIEW_OTHERS)
+    contents = Attribute(permission=NotificationPermissions.VIEW_OTHERS)
+    read = Attribute(permission=NotificationPermissions.VIEW_OTHERS)

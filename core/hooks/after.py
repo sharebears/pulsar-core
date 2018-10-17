@@ -3,6 +3,7 @@ import json
 import flask
 
 from . import bp
+from core.users.permissions import SitePermissions
 
 
 @bp.after_app_request
@@ -28,7 +29,7 @@ def wrap_response(response: flask.Response) -> None:
         'response': data,
         }
 
-    if flask.g.user and flask.g.user.has_permission('site_manage_cache_keys'):
+    if flask.g.user and flask.g.user.has_permission(SitePermissions.MANAGE_CACHE_KEYS):
         # We can't encode sets to JSON.
         response_data['cache_keys'] = {k: list(v) for k, v in flask.g.cache_keys.items()}
 

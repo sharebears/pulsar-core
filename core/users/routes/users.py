@@ -5,6 +5,7 @@ from voluptuous.validators import Email, Match
 from core.users.models import User
 from core.utils import require_permission, validate_data
 from core.validators import PASSWORD_REGEX, ValInviteCode, ValUsername
+from core.users.permissions import UserPermissions
 
 from . import bp
 
@@ -12,7 +13,7 @@ app = flask.current_app
 
 
 @bp.route('/users/<int:user_id>', methods=['GET'])
-@require_permission('users_view')
+@require_permission(UserPermissions.VIEW)
 def get_user(user_id: int) -> flask.Response:
     """
     Return general information about a user with the given user ID.  If the
