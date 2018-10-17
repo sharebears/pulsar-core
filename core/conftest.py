@@ -109,12 +109,13 @@ def db_create_tables():
 def app(monkeypatch):
     app = create_app()
     cache.clear()
-    with app.app_context():
-        for unpopulate_func in UNPOPULATE_FUNCTIONS:
-            unpopulate_func()
-        unpopulate_db()
-        populate_db()
-    yield app
+    with set_globals(app):
+        with app.app_context():
+            for unpopulate_func in UNPOPULATE_FUNCTIONS:
+                unpopulate_func()
+            unpopulate_db()
+            populate_db()
+        yield app
 
 
 @pytest.fixture
@@ -160,6 +161,7 @@ def set_user(app_, user):
 def populate_db():
     for c in TestDataPopulator.__subclasses__():
         c.populate()
+    cache.clear()
 
 
 def unpopulate_db():

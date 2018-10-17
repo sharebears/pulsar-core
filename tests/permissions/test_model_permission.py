@@ -27,7 +27,6 @@ def test_user_class_permission_override(app, authed_client):
         (1, 'sample_d', 't'),
         (1, 'sample_b', 'f')
         """)
-
     user = User.from_pk(1)
     assert set(user.permissions) == {
         'sample_a',
