@@ -1,19 +1,19 @@
 import os
+from core.test_data import CorePopulator
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
 from enum import Enum
-from typing import Any, Callable, List
+from typing import Any, List
 
 import flask
 import pytest
 
 import core
-from core.mixins import TestDataPopulator
 from core import cache, db
 from core.users.models import User
 
-UNPOPULATE_FUNCTIONS: List[Callable] = []
+POPULATORS: List[Any] = [CorePopulator]
 PLUGINS: List[Any] = [core]
 
 
@@ -108,11 +108,8 @@ def db_create_tables():
 @pytest.fixture
 def app(monkeypatch):
     app = create_app()
-    cache.clear()
     with set_globals(app):
         with app.app_context():
-            for unpopulate_func in UNPOPULATE_FUNCTIONS:
-                unpopulate_func()
             unpopulate_db()
             populate_db()
         yield app
@@ -159,11 +156,11 @@ def set_user(app_, user):
 
 
 def populate_db():
-    for c in TestDataPopulator.__subclasses__():
-        c.populate()
+    for p in POPULATORS:
+        p.populate()
     cache.clear()
 
 
 def unpopulate_db():
-    for c in TestDataPopulator.__subclasses__():
-        c.unpopulate()
+    for p in POPULATORS[::-1]:
+        p.unpopulate()

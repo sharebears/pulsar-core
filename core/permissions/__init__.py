@@ -24,7 +24,6 @@ class Permissions:
     def is_valid_permission(cls,
                             permission: str,
                             permissioned: bool = True) -> bool:
-        print('hello')
         if permissioned:
             if permission in cls.get_all_permissions():
                 return True

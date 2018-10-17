@@ -1,4 +1,5 @@
 from typing import Any, Optional, Type, TypeVar, TYPE_CHECKING
+from enum import Enum
 
 from flask_sqlalchemy import BaseQuery, Model
 from sqlalchemy.orm.session import make_transient_to_detached
@@ -23,7 +24,13 @@ class BaseFunctionalityMixin:
 
 
 class TestDataPopulator:
-    pass
+
+    @staticmethod
+    def add_permissions(*permissions):
+        permissions = [p if not isinstance(p, Enum) else p.value for p in permissions]
+        db.engine.execute(
+            f"""INSERT INTO users_permissions (user_id, permission) VALUES
+            (1, '""" + "'), (1, '".join(permissions) + "')")
 
 
 class PKBase(Model, BaseFunctionalityMixin):
