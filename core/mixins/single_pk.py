@@ -24,10 +24,6 @@ class SinglePKMixin(PKBase):
     serializer object will be used to turn the model into JSON.
     """
 
-    @property
-    def __serializer__(self):
-        raise NotImplementedError
-
     @classmethod
     def from_pk(cls: Type[SPK],
                 pk: Union[str, int, None],
