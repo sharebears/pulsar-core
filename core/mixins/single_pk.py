@@ -2,20 +2,16 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 import flask
-from flask_sqlalchemy import BaseQuery, Model
-from sqlalchemy import func
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm.attributes import InstrumentedAttribute
-from sqlalchemy.orm.session import make_transient_to_detached
 from sqlalchemy.sql.elements import BinaryExpression
 
 from core import APIException, _403Exception, _404Exception, cache, db
-from core.mixins.base import BaseFunctionalityMixin
+from core.mixins.base import PKBase
 
-MDL = TypeVar('MDL', bound='SinglePKMixin')
+SPK = TypeVar('SPK', bound='SinglePKMixin')
 
 
-class SinglePKMixin(Model, BaseFunctionalityMixin):
+class SinglePKMixin(PKBase):
     """
     This is the primary mixin for most of pulsar's model classes. This adds caching and JSON
     serialization functionality to the base SQLAlchemy model. Methods belonging to the mixin
@@ -28,21 +24,18 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
     serializer object will be used to turn the model into JSON.
     """
 
-    __cache_key__: Optional[str] = None
-    __deletion_attr__: Optional[str] = None
-
     @property
     def __serializer__(self):
         raise NotImplementedError
 
     @classmethod
-    def from_pk(cls: Type[MDL],
+    def from_pk(cls: Type[SPK],
                 pk: Union[str, int, None],
                 *,
                 include_dead: bool = False,
                 _404: bool = False,
                 error: bool = False,
-                asrt: Union[str, Enum] = None) -> Optional[MDL]:
+                asrt: Union[str, Enum] = None) -> Optional[SPK]:
                 # TODO fix response type, this is why we are static optional.
         """
         Default classmethod constructor to get an object by its PK ID.
@@ -67,7 +60,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         :raises _404Exception: If ``_404`` is passed and an object is not found nor accessible
         """
         if pk:
-            model = cls.from_cache(
+            model: SPK = cls.from_cache(
                 key=cls.create_cache_key(pk),
                 query=cls.query.filter(getattr(cls, cls.get_primary_key()) == pk))
             if (model is not None
@@ -81,50 +74,11 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         return None
 
     @classmethod
-    def from_cache(cls: Type[MDL],
-                   key: str,
-                   *,
-                   query: BaseQuery = None) -> Optional[MDL]:
-        """
-        Check the cache for an instance of this model and attempt to load
-        its attributes from the cache instead of from the database.
-        If found, the object is merged into the database session and returned.
-        Otherwise, if a query is passed, the query is ran and the result is cached and
-        returned. Model returns ``None`` if the object doesn't exist.
-
-        :param key:   The cache key to get
-        :param query: The SQLAlchemy query
-
-        :return:      An instance of this class, if the cache key or query produced results
-        """
-        data = cache.get(key)
-        obj = cls._create_obj_from_cache(data)
-        if obj:
-            return obj
-        else:
-            cache.delete(key)
-        if query:
-            obj = query.scalar()
-            cache.cache_model(obj)
-            return obj
-        return None
-
-    @classmethod
-    def _create_obj_from_cache(cls: Type[MDL],
-                               data: Any) -> Optional[MDL]:
-        if cls._valid_data(data):
-            obj = cls(**data)
-            make_transient_to_detached(obj)
-            obj = db.session.merge(obj, load=False)
-            return obj
-        return None
-
-    @classmethod
-    def from_query(cls: Type[MDL],
+    def from_query(cls: Type[SPK],
                    *,
                    key: str = None,
                    filter: BinaryExpression = None,
-                   order: BinaryExpression = None) -> Optional[MDL]:
+                   order: BinaryExpression = None) -> Optional[SPK]:
         """
         Function to get a single object from the database (via ``limit(1)``, ``query.first()``).
         Getting the object via the provided cache key will be attempted first; if
@@ -154,7 +108,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         return cls.from_pk(cls_pk)
 
     @classmethod
-    def get_many(cls: Type[MDL],
+    def get_many(cls: Type[SPK],
                  *,
                  key: str = None,
                  filter: BinaryExpression = None,
@@ -166,7 +120,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
                  limit: Optional[int] = 50,
                  reverse: bool = False,
                  pks: List[Union[int, str]] = None,
-                 expr_override: BinaryExpression = None) -> List[MDL]:
+                 expr_override: BinaryExpression = None) -> List[SPK]:
         """
         An abstracted function to get a list of PKs from the cache with a cache key,
         and query for those IDs if the key does not exist. If the query needs to be ran,
@@ -209,7 +163,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
             all_next_pks = pks[(page - 1) * limit:]
             pks, extra_pks = all_next_pks[:limit], all_next_pks[limit:]
 
-        models: List[MDL] = []
+        models: List[SPK] = []
         while not limit or len(models) < limit:
             if pks:
                 cls.populate_models_from_pks(models, pks, filter)
@@ -268,7 +222,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
 
     @classmethod
     def populate_models_from_pks(cls,
-                                 models: List[MDL],
+                                 models: List[SPK],
                                  pks: List[Union[str, int]],
                                  filter: BinaryExpression = None) -> None:
         """
@@ -288,7 +242,7 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
                 uncached_pks.append(i)
 
         if uncached_pks:
-            qry_models: Dict[Union[int, str], MDL] = {
+            qry_models: Dict[Union[int, str], SPK] = {
                 obj.primary_key: obj for obj in
                 cls._construct_query(cls.query.filter(
                     getattr(cls, cls.get_primary_key()).in_(uncached_pks)),
@@ -358,20 +312,6 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
             cache.delete_many(*(cls.create_cache_key(pk) for pk in pks))
 
     @classmethod
-    def _new(cls: Type[MDL],
-             **kwargs: Any) -> MDL:
-        """
-        Create a new instance of the model, add it to the instance, cache it, and return it.
-
-        :param kwargs: The new attributes of the model
-        """
-        model = cls(**kwargs)
-        db.session.add(model)
-        db.session.commit()
-        cache.cache_model(model)
-        return model
-
-    @classmethod
     def _valid_data(cls, data: dict) -> bool:
         """
         Validate the data returned from the cache by ensuring that it is a dictionary
@@ -383,30 +323,6 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         return (bool(data)
                 and isinstance(data, dict)
                 and set(data.keys()) == set(cls.__table__.columns.keys()))
-
-    @classmethod
-    def count(cls,
-              *,
-              key: str,
-              attribute: InstrumentedAttribute,
-              filter: BinaryExpression = None) -> int:
-        """
-        An abstracted function for counting a number of elements matching a query. If the
-        passed cache key exists, its value will be returned; otherwise, the passed query
-        will be ran and the resultant count cached and returned.
-
-        :param key:       The cache key to check
-        :param attribute: The attribute to count; a model's column
-        :param filter:    The SQLAlchemy filter expression
-
-        :return: The number of rows matching the query element
-        """
-        count = cache.get(key)
-        if not isinstance(count, int):
-            query = cls._construct_query(db.session.query(func.count(attribute)), filter)
-            count = query.scalar()
-            cache.set(key, count)
-        return count
 
     def can_access(self,
                    permission: Union[str, Enum] = None,
@@ -438,44 +354,6 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         """
         return flask.g.user is not None and flask.g.user.id == getattr(self, 'user_id', False)
 
-    def del_property_cache(self, prop: str) -> None:
-        """
-        Delete a property from the property cache.
-
-        :param prop: The property to delete
-        """
-        try:
-            del self._property_cache[prop]
-        except (AttributeError, KeyError):
-            pass
-
-    def serialize(self, **kwargs) -> None:
-        """
-        Serializes the object with the serializer assigned to the ``__serializer__``
-        attribute. Takes the same kwargs that the ``__serializer__`` object does.
-        """
-        return self.__serializer__.serialize(self, **kwargs)
-
-    @staticmethod
-    def _construct_query(query: BaseQuery,
-                         filter: BinaryExpression = None,
-                         order: BinaryExpression = None) -> BaseQuery:
-        """
-        A convenience function to save code space for query generations. Takes filters
-        and order_bys and applies them to the query, returning a query ready to be ran.
-
-        :param query:  A query that can be built upon
-        :param filter: A SQLAlchemy query filter expression
-        :param order:  A SQLAlchemy query order_by expression
-
-        :return:       A Flask-SQLAlchemy ``BaseQuery``
-        """
-        if filter is not None:
-            query = query.filter(filter)
-        if order is not None:
-            query = query.order_by(order)
-        return query
-
     @classmethod
     def get_primary_key(cls) -> str:
         """
@@ -491,16 +369,3 @@ class SinglePKMixin(Model, BaseFunctionalityMixin):
         :return: The value associated with the primary key of the model
         """
         return getattr(self, self.get_primary_key())
-
-    @property
-    def cache_key(self) -> str:
-        """
-        Default property for cache key which should be overridden if the
-        cache key is not formatted with an ID column. If the cache key
-        string for the model only takes an {id} param, then this function
-        will suffice.
-
-        :return:           The cache key of the model
-        :raises NameError: If the model does not have a cache key
-        """
-        return self.create_cache_key(self.primary_key)

@@ -1,35 +1,34 @@
-from typing import Any, List, Optional, Type, TypeVar, Union
+from typing import Any, List, Optional, TypeVar, Tuple, Union
+from sqlalchemy.inspection import inspect
 
-from flask_sqlalchemy import BaseQuery, Model
 from sqlalchemy import and_
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.elements import BinaryExpression
 
 from core import cache, db
-from core.mixins.base import BaseFunctionalityMixin
+from core.mixins.base import PKBase
 
 MPK = TypeVar('MPK', bound='MultiPKMixin')
 
 
-class MultiPKMixin(Model, BaseFunctionalityMixin):
+class MultiPKMixin(PKBase):
     """
     A model mixin for models with multiple primary keys, typically representative
     of many-to-many relational tables.
     """
-    __cache_key__: Optional[str] = None
-    __cache_key_all__: Optional[str] = None
-    __deletion_attr__: Optional[str] = None
 
     @classmethod
-    def from_attrs(cls: Type[MPK], **kwargs: Union[str, int]) -> Optional[MPK]:
+    def from_attrs(cls, **kwargs: Union[str, int]) -> Optional[MPK]:
         """
         Get an instance of the model from its attributes.
 
         :param kwargs: The attributes to query by
         :return:       An object matching the attributes
         """
-        return cls.query.filter(and_(*(
-            getattr(cls, k) == v for k, v in kwargs.items()))).scalar()
+        query = cls.query.filter(and_(*(getattr(cls, k) == v for k, v in kwargs.items())))
+        if cls.__cache_key__:
+            return cls.from_cache(key=cls.create_cache_key(kwargs), query=query)
+        return query.scalar()
 
     @classmethod
     def get_col_from_many(cls,
@@ -55,34 +54,14 @@ class MultiPKMixin(Model, BaseFunctionalityMixin):
         return values
 
     @classmethod
-    def _new(cls: Type[MPK],
-             **kwargs: Any) -> MPK:
-        """
-        Create a new instance of the model, add it to the instance, and return it.
+    def create_cache_key(cls, attrs):
+        return cls.__cache_key__.format(*{k: attrs[k] for k in cls.get_primary_keys()})
 
-        :param kwargs: The new attributes of the model
+    @classmethod
+    def get_primary_keys(cls) -> Tuple[str]:
         """
-        model = cls(**kwargs)
-        db.session.add(model)
-        db.session.commit()
-        return model
+        Get the name of the primary key attribute of the model.
 
-    @staticmethod
-    def _construct_query(query: BaseQuery,
-                         filter: BinaryExpression = None,
-                         order: BinaryExpression = None) -> BaseQuery:
+        :return: The primary key
         """
-        A convenience function to save code space for query generations. Takes filters
-        and order_bys and applies them to the query, returning a query ready to be ran.
-
-        :param query:  A query that can be built upon
-        :param filter: A SQLAlchemy query filter expression
-        :param order:  A SQLAlchemy query order_by expression
-
-        :return:       A Flask-SQLAlchemy ``BaseQuery``
-        """
-        if filter is not None:
-            query = query.filter(filter)
-        if order is not None:
-            query = query.order_by(order)
-        return query
+        return (m.name for m in inspect(cls).primary_key)
