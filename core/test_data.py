@@ -20,7 +20,8 @@ HASHED_CODE_4 = generate_password_hash(CODE_4)
 
 class CorePopulator(TestDataPopulator):
 
-    def populate():
+    @classmethod
+    def populate(cls):
         UserClass.new(name='User')
         SecondaryClass.new(name='FLS')
         UserClass.new(name='user_v2', permissions=[
@@ -57,7 +58,8 @@ class CorePopulator(TestDataPopulator):
             secondary_class_assoc_table.insert().values(user_id=1, secondary_class_id=1))
         db.session.commit()
 
-    def unpopulate():
+    @classmethod
+    def unpopulate(cls):
         db.engine.execute("DELETE FROM notifications")
         db.engine.execute("DELETE FROM notifications_types")
         db.engine.execute("DELETE FROM secondary_class_assoc")
