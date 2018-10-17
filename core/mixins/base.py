@@ -22,6 +22,10 @@ class BaseFunctionalityMixin:
             setattr(cls, key, val)
 
 
+class TestDataPopulator:
+    pass
+
+
 class PKBase(Model, BaseFunctionalityMixin):
     """
     A base class for the primary key mixin types. Contains their shared code and
