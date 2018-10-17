@@ -1,5 +1,5 @@
 from core.mixins import Attribute, Serializer
-from core.users.permissions import InvitePermissions, ApikeyPermissions, UserPermissions
+from core.users.permissions import ApikeyPermissions, InvitePermissions, UserPermissions
 
 
 class UserSerializer(Serializer):

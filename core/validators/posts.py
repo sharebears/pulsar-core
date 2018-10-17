@@ -1,5 +1,6 @@
 import flask
 from voluptuous import Length, LengthInvalid
+
 from core.users.permissions import SitePermissions
 
 

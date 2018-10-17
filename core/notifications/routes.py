@@ -3,10 +3,10 @@ from voluptuous import All, In, Range, Schema
 
 from core import APIException, db
 from core.notifications.models import Notification
-from core.utils import access_other_user, require_permission, validate_data
-from core.users.models import User
-from core.validators import BoolGET
 from core.notifications.permissions import NotificationPermissions
+from core.users.models import User
+from core.utils import access_other_user, require_permission, validate_data
+from core.validators import BoolGET
 
 from . import bp
 

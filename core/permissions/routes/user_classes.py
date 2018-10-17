@@ -6,9 +6,9 @@ from voluptuous import All, Length, Optional, Schema
 
 from core import APIException, db
 from core.permissions.models import SecondaryClass, UserClass
+from core.permissions.permissions import UserclassPermissions
 from core.utils import require_permission, validate_data
 from core.validators import BoolGET, PermissionsDict, PermissionsList
-from core.permissions.permissions import UserclassPermissions
 
 from . import bp
 

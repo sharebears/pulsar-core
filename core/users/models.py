@@ -1,7 +1,7 @@
 import secrets
-from enum import Enum
 from copy import copy
 from datetime import datetime
+from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import flask
@@ -140,7 +140,7 @@ class User(db.Model, SinglePKMixin):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.passhash, password)
 
-    def has_permission(self, permission: Optional[str]) -> bool:
+    def has_permission(self, permission: Union[None, str, Enum]) -> bool:
         """Check whether a user has a permission."""
         p = permission.value if isinstance(permission, Enum) else permission
         return bool(p and p in self.permissions)

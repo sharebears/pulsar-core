@@ -1,12 +1,12 @@
 from typing import Any, List, Optional, Type, TypeVar, Union
 
 from flask_sqlalchemy import BaseQuery, Model
-from core.mixins.base import BaseFunctionalityMixin
 from sqlalchemy import and_
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.elements import BinaryExpression
 
 from core import cache, db
+from core.mixins.base import BaseFunctionalityMixin
 
 MPK = TypeVar('MPK', bound='MultiPKMixin')
 

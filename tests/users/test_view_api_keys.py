@@ -1,5 +1,4 @@
 import json
-from core.users.permissions import ApikeyPermissions
 from datetime import datetime, timedelta
 
 import flask
@@ -8,6 +7,7 @@ import pytest
 from conftest import CODE_1, CODE_2, CODE_3, add_permissions, check_json_response
 from core import cache, db
 from core.users.models import APIKey
+from core.users.permissions import ApikeyPermissions
 from core.utils import require_permission
 
 

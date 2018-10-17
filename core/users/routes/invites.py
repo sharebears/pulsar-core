@@ -3,9 +3,9 @@ from voluptuous import Email, Optional, Schema
 
 from core import APIException, db
 from core.users.models import Invite, User
+from core.users.permissions import InvitePermissions
 from core.utils import access_other_user, require_permission, validate_data
 from core.validators import BoolGET
-from core.users.permissions import InvitePermissions
 
 from . import bp
 

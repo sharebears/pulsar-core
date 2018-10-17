@@ -3,9 +3,9 @@ from voluptuous import Any, Optional, Schema
 from voluptuous.validators import Email, Match
 
 from core.users.models import User
+from core.users.permissions import UserPermissions
 from core.utils import require_permission, validate_data
 from core.validators import PASSWORD_REGEX, ValInviteCode, ValUsername
-from core.users.permissions import UserPermissions
 
 from . import bp
 

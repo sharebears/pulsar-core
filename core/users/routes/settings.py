@@ -1,9 +1,9 @@
 import flask
-from core.users.permissions import UserPermissions
 from voluptuous import All, Length, Match, Schema
 
 from core import _401Exception, _403Exception, db
 from core.users.models import APIKey, User
+from core.users.permissions import UserPermissions
 from core.utils import access_other_user, require_permission, validate_data
 from core.validators import PASSWORD_REGEX
 

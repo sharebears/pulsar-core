@@ -1,11 +1,13 @@
 from collections import defaultdict
-from typing import Dict, List, Set, Tuple
+from enum import Enum
+from typing import Dict, List, Set, Tuple, Union
 
 import flask
 from voluptuous import Invalid
 
 from core import APIException
 from core.permissions.models import SecondaryClass, UserPermission
+from core.permissions import Permissions
 from core.users.models import User
 
 
@@ -21,7 +23,7 @@ def PermissionsList(perm_list: List[str]) -> List[str]:
     invalid = []
     if isinstance(perm_list, list):
         for perm in perm_list:
-            if not UserPermission.is_valid_permission(perm):
+            if not Permissions.is_valid_permission(perm):
                 invalid.append(perm)
     else:
         raise Invalid('Permissions must be in a list,')
@@ -58,7 +60,7 @@ class PermissionsDict:
     BASIC_PERMISSIONS.
     """
 
-    def __init__(self, restrict: str = None) -> None:
+    def __init__(self, restrict: Union[str, Enum] = None) -> None:
         self.restrict = restrict
 
     def __call__(self, permissions: dict) -> dict:
@@ -73,7 +75,7 @@ class PermissionsDict:
             for perm_name, action in permissions.items():
                 if not isinstance(action, bool):
                     raise Invalid('permission actions must be booleans')
-                elif (not UserPermission.is_valid_permission(perm_name, permissioned)
+                elif (not Permissions.is_valid_permission(perm_name, permissioned)
                       and not (permissioned and action is False)):
                     # Do not disallow removal of non-existent permissions.
                     raise Invalid(f'{perm_name} is not a valid permission')

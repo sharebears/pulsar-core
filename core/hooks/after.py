@@ -2,8 +2,9 @@ import json
 
 import flask
 
-from . import bp
 from core.users.permissions import SitePermissions
+
+from . import bp
 
 
 @bp.after_app_request

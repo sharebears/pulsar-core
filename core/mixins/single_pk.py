@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 from enum import Enum
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 import flask
 from flask_sqlalchemy import BaseQuery, Model

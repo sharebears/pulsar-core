@@ -1,10 +1,10 @@
-from core.mixins import Permission
+from core.permissions import PermissionsEnum
 
 
-class PermissionPermissions(Permission):
+class PermissionPermissions(PermissionsEnum):
     MODIFY = 'permissions_modify'
 
 
-class UserclassPermissions(Permission):
+class UserclassPermissions(PermissionsEnum):
     LIST = 'userclasses_list'
     MODIFY = 'userclasses_modify'

@@ -2,10 +2,10 @@ from typing import List
 
 import flask
 from voluptuous import Optional, Schema
-from core.users.permissions import ApikeyPermissions
 
 from core import APIException, _401Exception, db
 from core.users.models import APIKey, User
+from core.users.permissions import ApikeyPermissions
 from core.utils import access_other_user, require_permission, validate_data
 from core.validators import BoolGET, PermissionsListOfUser
 

@@ -1,10 +1,10 @@
 import inspect
 from enum import Enum
 from typing import Dict, Union
-from core.mixins.base import BaseFunctionalityMixin
 
 import flask
 
+from core.mixins.base import BaseFunctionalityMixin
 from core.mixins.single_pk import SinglePKMixin
 
 

@@ -1,11 +1,11 @@
+from enum import Enum
 from functools import wraps
 from typing import Callable, Union
 
 import flask
 from werkzeug.datastructures import MultiDict
-from enum import Enum
 
-from core import _312Exception, _401Exception, _403Exception, _404Exception, APIException
+from core import APIException, _312Exception, _401Exception, _403Exception, _404Exception
 
 app = flask.current_app
 

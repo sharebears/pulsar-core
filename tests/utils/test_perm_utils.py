@@ -2,7 +2,7 @@ import flask
 import pytest
 
 from conftest import add_permissions, check_json_response
-from core.utils import assert_permission, assert_user, access_other_user
+from core.utils import access_other_user, assert_permission, assert_user
 
 
 @pytest.mark.parametrize(
