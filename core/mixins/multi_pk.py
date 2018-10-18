@@ -55,7 +55,7 @@ class MultiPKMixin(PKBase):
 
     @classmethod
     def create_cache_key(cls, attrs):
-        return cls.__cache_key__.format(*{k: attrs[k] for k in cls.get_primary_keys()})
+        return cls.__cache_key__.format(**{k: attrs[k] for k in cls.get_primary_keys()})
 
     @classmethod
     def get_primary_keys(cls) -> Tuple[str]:
@@ -65,3 +65,7 @@ class MultiPKMixin(PKBase):
         :return: The primary key
         """
         return (m.name for m in inspect(cls).primary_key)
+
+    @property
+    def primary_key(self):
+        return {k: getattr(self, k) for k in self.get_primary_keys()}

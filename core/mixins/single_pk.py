@@ -307,19 +307,6 @@ class SinglePKMixin(PKBase):
             db.session.commit()
             cache.delete_many(*(cls.create_cache_key(pk) for pk in pks))
 
-    @classmethod
-    def _valid_data(cls, data: dict) -> bool:
-        """
-        Validate the data returned from the cache by ensuring that it is a dictionary
-        and that the returned values match the columns of the object.
-
-        :param data: The stored object data from the cache to validate
-        :return:     Whether or not the data is valid
-        """
-        return (bool(data)
-                and isinstance(data, dict)
-                and set(data.keys()) == set(cls.__table__.columns.keys()))
-
     def can_access(self,
                    permission: Union[str, Enum] = None,
                    error: bool = False) -> bool:

@@ -69,6 +69,19 @@ class PKBase(Model, BaseFunctionalityMixin):
             return obj
         return None
 
+    @classmethod
+    def _valid_data(cls, data: dict) -> bool:
+        """
+        Validate the data returned from the cache by ensuring that it is a dictionary
+        and that the returned values match the columns of the object.
+
+        :param data: The stored object data from the cache to validate
+        :return:     Whether or not the data is valid
+        """
+        return (bool(data)
+                and isinstance(data, dict)
+                and set(data.keys()) == set(cls.__table__.columns.keys()))
+
     @staticmethod
     def _construct_query(query: BaseQuery,
                          filter: BinaryExpression = None,
