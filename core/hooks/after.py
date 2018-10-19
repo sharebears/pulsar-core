@@ -22,8 +22,8 @@ def wrap_response(response: flask.Response) -> None:
     """
     try:
         data = json.loads(response.get_data())
-    except ValueError:  # pragma: no cover
-        data = 'Could not encode response.'
+    except ValueError:
+        return response
 
     response_data = {
         'status': 'success' if response.status_code // 100 == 2 else 'failed',

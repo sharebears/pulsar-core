@@ -56,3 +56,12 @@ def test_cache_keys_no_perms(app, authed_client):
 
     response = authed_client.get('/test_endpoint')
     assert 'cache_keys' not in response.get_json()
+
+
+def test_response_no_json(app, authed_client):
+    @app.route('/test_endpoint')
+    def test_endpoint():
+        return flask.make_response('<html><body><h1>HELLO</h1></body></html>')
+
+    response = authed_client.get('/test_endpoint')
+    assert response.get_data() == b'<html><body><h1>HELLO</h1></body></html>'
