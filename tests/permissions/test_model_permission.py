@@ -18,6 +18,11 @@ def test_permissions_from_user(app, client):
     }
 
 
+def test_site_god_mode_override(app, authed_client):
+    add_permissions(app, 'site_god_mode')
+    assert User.from_pk(1).has_permission('really_not_existent_permission')
+
+
 def test_user_class_permission_override(app, authed_client):
     db.engine.execute("""UPDATE user_classes SET permissions = '{"sample_a", "sample_b"}'""")
     db.engine.execute("""UPDATE secondary_classes SET permissions = '{"sample_e"}'""")
