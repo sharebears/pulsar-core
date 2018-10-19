@@ -28,3 +28,4 @@ class SitePermissions(PermissionsEnum):
     NO_IP_HISTORY = 'site_no_ip_history'
     MANAGE_CACHE_KEYS = 'site_manage_cache_keys'
     NO_POST_LENGTH_LIMIT = 'site_no_post_length_limit'
+    GOD_MODE = 'site_god_mode'

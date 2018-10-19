@@ -1,7 +1,7 @@
-from typing import Any, List, Optional, TypeVar, Tuple, Union
-from sqlalchemy.inspection import inspect
+from typing import Any, List, Optional, Tuple, TypeVar, Union
 
 from sqlalchemy import and_
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.elements import BinaryExpression
 

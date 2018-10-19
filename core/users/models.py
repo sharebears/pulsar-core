@@ -12,6 +12,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from core import APIException, cache, db
 from core.mixins import SinglePKMixin
+from core.users.permissions import SitePermissions
 from core.users.serializers import APIKeySerializer, InviteSerializer, UserSerializer
 from core.utils import cached_property
 
@@ -142,6 +143,8 @@ class User(db.Model, SinglePKMixin):
 
     def has_permission(self, permission: Union[None, str, Enum]) -> bool:
         """Check whether a user has a permission."""
+        if SitePermissions.GOD_MODE.value in self.permissions:
+            return True
         p = permission.value if isinstance(permission, Enum) else permission
         return bool(p and p in self.permissions)
 

@@ -1,7 +1,9 @@
-from core.mixins import TestDataPopulator
-from core import db
 from werkzeug.security import generate_password_hash
-from core.permissions.models import UserClass, SecondaryClass, secondary_class_assoc_table
+
+from core import db
+from core.mixins import TestDataPopulator
+from core.permissions.models import (SecondaryClass, UserClass,
+                                     secondary_class_assoc_table)
 
 HASH_1 = generate_password_hash('12345')
 HASH_2 = generate_password_hash('abcdefg')

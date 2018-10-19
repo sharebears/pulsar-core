@@ -1,11 +1,11 @@
-from typing import Any, Optional, Type, TypeVar, TYPE_CHECKING
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar
 
 from flask_sqlalchemy import BaseQuery, Model
-from sqlalchemy.orm.session import make_transient_to_detached
-from sqlalchemy.sql.elements import BinaryExpression
 from sqlalchemy import func
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.orm.session import make_transient_to_detached
+from sqlalchemy.sql.elements import BinaryExpression
 
 from core import cache, db
 

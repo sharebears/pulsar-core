@@ -6,8 +6,8 @@ import flask
 from voluptuous import Invalid
 
 from core import APIException
-from core.permissions.models import SecondaryClass, UserPermission
 from core.permissions import Permissions
+from core.permissions.models import SecondaryClass, UserPermission
 from core.users.models import User
 
 

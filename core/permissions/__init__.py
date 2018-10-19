@@ -1,7 +1,8 @@
 from enum import Enum
-import flask
 from itertools import chain
 from typing import List
+
+import flask
 
 from core.permissions.routes import bp  # noqa
 

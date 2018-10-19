@@ -1,5 +1,4 @@
 import os
-from core.test_data import CorePopulator
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
@@ -11,6 +10,7 @@ import pytest
 
 import core
 from core import cache, db
+from core.test_data import CorePopulator
 from core.users.models import User
 
 POPULATORS: List[Any] = [CorePopulator]

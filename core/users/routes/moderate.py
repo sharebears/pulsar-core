@@ -5,10 +5,10 @@ from voluptuous import All, Email, Range, Schema
 from voluptuous.validators import Match
 
 from core import APIException, cache, db
+from core.permissions import Permissions
 from core.permissions.models import UserPermission
 from core.users.models import User
 from core.users.permissions import UserPermissions
-from core.permissions import Permissions
 from core.utils import require_permission, validate_data
 from core.validators import PASSWORD_REGEX, PermissionsDict, check_permissions
 
