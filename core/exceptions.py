@@ -39,8 +39,8 @@ class _403Exception(APIException):
     """
 
     def __init__(self,
-                 masquerade: bool = False,
-                 message: str = None) -> None:
+                 message: str = None,
+                 masquerade: bool = False) -> None:
         super().__init__(
             message=(message or 'You do not have permission to access this resource.'),
             status_code=403)

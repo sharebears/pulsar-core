@@ -56,8 +56,8 @@ def test_get_user_detailed(app, authed_client):
 
 def test_user_does_not_exist(app, authed_client):
     add_permissions(app, 'users_view')
-    response = authed_client.get('/users/4')
-    check_json_response(response, 'User 4 does not exist.', strict=True)
+    response = authed_client.get('/users/7')
+    check_json_response(response, 'User 7 does not exist.', strict=True)
     assert response.status_code == 404
 
 

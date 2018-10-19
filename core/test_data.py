@@ -39,7 +39,9 @@ class CorePopulator(TestDataPopulator):
             (username, passhash, email, invites, inviter_id, user_class_id) VALUES
             ('user_one', '{HASH_1}', 'user_one@puls.ar', 1, NULL, 1),
             ('user_two', '{HASH_2}', 'user_two@puls.ar', 0, 1, 1),
-            ('user_three', '{HASH_3}', 'user_three@puls.ar', 0, NULL, 1)
+            ('user_three', '{HASH_3}', 'user_three@puls.ar', 0, NULL, 1),
+            ('user_four', '{HASH_1}', 'user_four@puls.ar', 2, 2, 1),
+            ('user_five', '{HASH_1}', 'user_four@puls.ar', 1, 4, 1)
             """)
         db.engine.execute(
             f"""INSERT INTO api_keys (user_id, hash, keyhashsalt, revoked, permissions) VALUES
