@@ -1,4 +1,5 @@
 from typing import Any, List, Optional, Tuple, TypeVar, Union
+from enum import Enum
 
 from sqlalchemy import and_
 from sqlalchemy.inspection import inspect
@@ -55,17 +56,23 @@ class MultiPKMixin(PKBase):
 
     @classmethod
     def create_cache_key(cls, attrs):
-        return cls.__cache_key__.format(**{k: attrs[k] for k in cls.get_primary_keys()})
+        return cls.__cache_key__.format(**{k: attrs[k] for k in cls.get_primary_key()})
 
     @classmethod
-    def get_primary_keys(cls) -> Tuple[str]:
+    def get_primary_key(cls) -> Tuple[str]:
         """
         Get the name of the primary key attribute of the model.
 
         :return: The primary key
         """
-        return (m.name for m in inspect(cls).primary_key)
+        return [m.name for m in inspect(cls).primary_key]
 
     @property
     def primary_key(self):
-        return {k: getattr(self, k) for k in self.get_primary_keys()}
+        return {k: getattr(self, k) for k in self.get_primary_key()}
+
+    def can_access(self,
+                   permission: Union[str, Enum] = None,
+                   error: bool = False) -> bool:
+        """Because multi-pk things aren't usually permissioned."""
+        return True
