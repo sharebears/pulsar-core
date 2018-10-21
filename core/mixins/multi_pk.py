@@ -76,3 +76,7 @@ class MultiPKMixin(PKBase):
                    error: bool = False) -> bool:
         """Because multi-pk things aren't usually permissioned."""
         return True
+
+    def belongs_to_user(self) -> bool:
+        """Because multi-pk things aren't usually permissioned."""
+        return True

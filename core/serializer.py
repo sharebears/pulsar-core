@@ -6,8 +6,8 @@ from flask.json import JSONEncoder
 class NewJSONEncoder(JSONEncoder):
     """
     Custom JSON Encoder class to apply the _to_dict() function to
-    all SinglePKMixins and turn timestamps into unixtime. This encoder
-    allows ``flask.jsonify`` to receive a ``SinglePKMixin`` subclass
+    all PKBase subclasses and turn timestamps into unixtime. This encoder
+    allows ``flask.jsonify`` to receive a ``PKBase`` subclass
     as an argument, which will then be turned into a dictionary
     automatically.
     """
@@ -15,15 +15,15 @@ class NewJSONEncoder(JSONEncoder):
     def default(self, obj):
         """
         Overridden default method for the JSONEncoder. The JSON encoder will
-        now serialize all timestamps to POSIX time and turn SinglePKMixins
-        into dictionaries.
+        now serialize all timestamps to POSIX time and turn PKBase into
+        dictionaries.
         """
-        from core.mixins import SinglePKMixin
+        from core.mixins import PKBase
         if isinstance(obj, datetime):
             return int(obj.timestamp())
         if isinstance(obj, set):
             return list(obj)
-        if isinstance(obj, SinglePKMixin):
+        if isinstance(obj, PKBase):
             data = obj.serialize()
             return self._objects_to_dict(data) if data else None
         return super().default(obj)
@@ -33,7 +33,7 @@ class NewJSONEncoder(JSONEncoder):
         Iterate through all values inside a dictionary and "fix" a dictionary to be
         JSON serializable by applying the _to_dict() function to all embedded models.
         All datetime objects are converted to a POSIX timestamp (seconds since epoch).
-        This function only supports converting ``dict``s, ``list``s, ``SinglePKMixin``s,
+        This function only supports converting ``dict``s, ``list``s, ``PKBase``s,
         and ``datetimes``. If the value was originally serializable, it will remain
         serializable. Keys are not modified, so they must be JSON serializable.
         If your serialization needs are more complex, feel free to add to the function.
@@ -41,12 +41,12 @@ class NewJSONEncoder(JSONEncoder):
         :param dict_: The dictionary to iterate over and make JSON serializable
         :return:      A JSON serializable dict of all the elements inside the original dict
         """
-        from core.mixins import SinglePKMixin
+        from core.mixins import PKBase
 
         def iter_handler(value):
             if isinstance(value, dict):
                 return self._objects_to_dict(value)
-            if isinstance(value, SinglePKMixin):
+            if isinstance(value, PKBase):
                 return self._objects_to_dict(value.serialize(nested=True))
             if isinstance(value, set):
                 return list(value)
