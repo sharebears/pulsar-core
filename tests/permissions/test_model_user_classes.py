@@ -53,7 +53,7 @@ def test_user_secondary_classes_models(app, client):
     cache.set(SecondaryClass.__cache_key_of_user__.format(id=1), [2], timeout=60)
     secondary_classes = SecondaryClass.from_user(1)
     assert len(secondary_classes) == 1
-    assert secondary_classes[0].name == 'user_v2'
+    assert secondary_classes[0].name == 'Beans Team'
 
 
 def test_serialize_user_class_permless(app, client):

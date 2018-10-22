@@ -20,7 +20,7 @@ def test_view_user_class_secondary(app, authed_client):
         'secondary': True}).get_json()
     assert 'response' in response
     response = response['response']
-    assert response['name'] == 'user_v2'
+    assert response['name'] == 'Beans Team'
     assert response['permissions'] == ['users_edit_settings']
 
 
@@ -33,22 +33,22 @@ def test_view_user_class_nonexistent(app, authed_client):
 def test_view_multiple_user_classes(app, authed_client):
     response = authed_client.get('/user_classes').get_json()
 
-    assert len(response['response']['user_classes']) == 2
+    assert len(response['response']['user_classes']) == 6
     assert ({'id': 1,
              'name': 'User',
              'permissions': ['permissions_modify', 'users_edit_settings'],
              } in response['response']['user_classes'])
     assert ({'id': 2,
-             'name': 'user_v2',
+             'name': 'Power User',
              'permissions': ['permissions_modify', 'users_edit_settings'],
              } in response['response']['user_classes'])
 
-    assert len(response['response']['secondary_classes']) == 2
+    assert len(response['response']['secondary_classes']) == 4
     assert ({'id': 1,
              'name': 'FLS',
              'permissions': ['invites_send']} in response['response']['secondary_classes'])
     assert ({'id': 2,
-             'name': 'user_v2',
+             'name': 'Beans Team',
              'permissions': ['users_edit_settings']} in response['response']['secondary_classes'])
 
 
@@ -57,19 +57,19 @@ def test_create_user_class(app, authed_client):
         'name': 'user_v3',
         'permissions': ['users_edit_settings', 'invites_send']}))
     check_json_response(response, {
-        'id': 3,
+        'id': 7,
         'name': 'user_v3',
         'permissions': ['users_edit_settings', 'invites_send']})
 
-    user_class = UserClass.from_pk(3)
+    user_class = UserClass.from_pk(7)
     assert user_class.name == 'user_v3'
     assert user_class.permissions == ['users_edit_settings', 'invites_send']
 
 
 def test_create_user_class_duplicate(app, authed_client):
     response = authed_client.post('/user_classes', data=json.dumps({
-        'name': 'user_v2', 'permissions': []})).get_json()
-    assert response['response'] == 'Another UserClass already has the name user_v2.'
+        'name': 'Power User', 'permissions': []})).get_json()
+    assert response['response'] == 'Another UserClass already has the name Power User.'
 
 
 def test_create_user_class_secondary(app, authed_client):
@@ -78,28 +78,28 @@ def test_create_user_class_secondary(app, authed_client):
         'permissions': ['users_edit_settings', 'invites_send'],
         'secondary': True}))
     check_json_response(response, {
-        'id': 3,
+        'id': 5,
         'name': 'User',
         'permissions': ['users_edit_settings', 'invites_send']})
 
-    user_class = SecondaryClass.from_pk(3)
+    user_class = SecondaryClass.from_pk(5)
     assert user_class.name == 'User'
     assert user_class.permissions == ['users_edit_settings', 'invites_send']
 
-    assert not UserClass.from_pk(4)
+    assert not UserClass.from_pk(7)
 
 
 def test_create_secondary_class_duplicate(app, authed_client):
     response = authed_client.post('/user_classes', data=json.dumps({
-        'name': 'user_v2', 'permissions': [], 'secondary': True})).get_json()
-    assert response['response'] == 'Another SecondaryClass already has the name user_v2.'
+        'name': 'Beans Team', 'permissions': [], 'secondary': True})).get_json()
+    assert response['response'] == 'Another SecondaryClass already has the name Beans Team.'
 
 
 def test_delete_user_class(app, authed_client):
     response = authed_client.delete('/user_classes/2').get_json()
-    assert response['response'] == 'UserClass user_v2 has been deleted.'
+    assert response['response'] == 'UserClass Power User has been deleted.'
     assert not UserClass.from_pk(2)
-    assert not UserClass.from_name('user_v2')
+    assert not UserClass.from_name('Power User')
 
 
 def test_delete_user_class_nonexistent(app, authed_client):
@@ -168,9 +168,9 @@ def test_modify_user_class_failure(app, authed_client, permissions, error):
 
 
 def test_modify_user_class_nonexistent(app, authed_client):
-    response = authed_client.put('/user_classes/3', data=json.dumps({
+    response = authed_client.put('/user_classes/7', data=json.dumps({
         'permissions': {'invites_send': True}})).get_json()
-    assert response['response'] == 'UserClass 3 does not exist.'
+    assert response['response'] == 'UserClass 7 does not exist.'
 
 
 @pytest.mark.parametrize(

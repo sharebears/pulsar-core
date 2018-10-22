@@ -25,14 +25,20 @@ class CorePopulator(TestDataPopulator):
     @classmethod
     def populate(cls):
         UserClass.new(name='User')
-        SecondaryClass.new(name='FLS')
-        UserClass.new(name='user_v2', permissions=[
+        UserClass.new(name='Power User', permissions=[
             'permissions_modify',
             'users_edit_settings',
             ])
-        SecondaryClass.new(name='user_v2', permissions=[
+        UserClass.new(name='Elite')
+        UserClass.new(name='Torrent Masturbaiter')
+        UserClass.new(name='Staff')
+        UserClass.new(name='Administrator')
+        SecondaryClass.new(name='FLS')
+        SecondaryClass.new(name='Beans Team', permissions=[
             'users_edit_settings',
             ])
+        SecondaryClass.new(name='Progressive Insurance')
+        SecondaryClass.new(name='Jake from State Farom')
 
         db.engine.execute(  # Generating password hash each time is slow, so raw SQL we go.
             f"""INSERT INTO users
