@@ -28,6 +28,7 @@ class User(db.Model, SinglePKMixin):
     __serializer__ = UserSerializer
     __cache_key__ = 'users_{id}'
     __cache_key_permissions__ = 'users_{id}_permissions'
+    __cache_key_from_username__ = 'users_username_{username}'
 
     id: int = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String(32), unique=True, nullable=False)
@@ -51,9 +52,9 @@ class User(db.Model, SinglePKMixin):
     @classmethod
     def from_username(cls, username: str) -> 'User':
         username = username.lower()
-        user = cls.query.filter(func.lower(cls.username) == username).scalar()
-        cache.cache_model(user)
-        return user
+        return cls.from_query(
+            key=cls.__cache_key_from_username__.format(username=username),
+            filter=func.lower(cls.username) == username)
 
     @classmethod
     def new(cls,
