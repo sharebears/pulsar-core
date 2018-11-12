@@ -42,6 +42,8 @@ class Notification(db.Model, SinglePKMixin):
             contents: Dict[str, Union[Dict, str]]) -> 'Notification':
         User.is_valid(user_id, error=True)
         noti_type = NotificationType.from_type(type, create_new=True)
+        cache.delete(cls.__cache_key_of_user__.format(user_id=user_id, type=type))
+        cache.delete(cls.__cache_key_notification_count__.format(user_id=user_id, type=type))
         return super()._new(
             user_id=user_id,
             type_id=noti_type.id,
