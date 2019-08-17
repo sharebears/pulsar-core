@@ -38,21 +38,26 @@ def view_api_key(hash: str) -> flask.Response:
     :statuscode 200: Successfully viewed API key.
     :statuscode 404: API key does not exist.
     """
-    return flask.jsonify(APIKey.from_pk(
-        hash, include_dead=True, _404=True, asrt=ApikeyPermissions.VIEW_OTHERS))
+    return flask.jsonify(
+        APIKey.from_pk(
+            hash,
+            include_dead=True,
+            _404=True,
+            asrt=ApikeyPermissions.VIEW_OTHERS,
+        )
+    )
 
 
-VIEW_ALL_API_KEYS_SCHEMA = Schema({
-    Optional('include_dead', default=True): BoolGET,
-    })
+VIEW_ALL_API_KEYS_SCHEMA = Schema(
+    {Optional('include_dead', default=True): BoolGET}
+)
 
 
 @bp.route('/api_keys', methods=['GET'])
 @require_permission(ApikeyPermissions.VIEW)
 @access_other_user(ApikeyPermissions.VIEW_OTHERS)
 @validate_data(VIEW_ALL_API_KEYS_SCHEMA)
-def view_all_api_keys(user: User,
-                      include_dead: bool) -> flask.Response:
+def view_all_api_keys(user: User, include_dead: bool) -> flask.Response:
     """
     View all API keys of a user. Requires the ``api_keys_view`` permission to view
     one's own API keys, and the ``api_keys_view_others`` permission to view
@@ -84,22 +89,26 @@ def view_all_api_keys(user: User,
     return flask.jsonify(api_keys)
 
 
-CREATE_API_KEY_SCHEMA = Schema({
-    'username': str,
-    'password': str,
-    'permanent': bool,
-    'timeout': int,
-    'permissions': PermissionsListOfUser,
-    })
+CREATE_API_KEY_SCHEMA = Schema(
+    {
+        'username': str,
+        'password': str,
+        'permanent': bool,
+        'timeout': int,
+        'permissions': PermissionsListOfUser,
+    }
+)
 
 
 @bp.route('/api_keys', methods=['POST'])
 @validate_data(CREATE_API_KEY_SCHEMA)
-def create_api_key(username: str = None,
-                   password: str = None,
-                   permanent: bool = False,
-                   timeout: int = 60 * 30,
-                   permissions: List[str] = None) -> flask.Response:
+def create_api_key(
+    username: str = None,
+    password: str = None,
+    permanent: bool = False,
+    timeout: int = 60 * 30,
+    permissions: List[str] = None,
+) -> flask.Response:
     """
     Creates an API key for use. Keys are unrecoverable after generation;
     if a key is lost, a new one will need to be generated.
@@ -154,12 +163,11 @@ def create_api_key(username: str = None,
         flask.request.user_agent.string,
         permanent,
         timeout,
-        permissions)
-    return flask.jsonify({
-        'hash': api_key.hash,
-        'key': raw_key,
-        'permissions': permissions,
-        })
+        permissions,
+    )
+    return flask.jsonify(
+        {'hash': api_key.hash, 'key': raw_key, 'permissions': permissions}
+    )
 
 
 @bp.route('/api_keys/<hash>', methods=['DELETE'])
@@ -198,7 +206,11 @@ def revoke_api_key(hash: str) -> flask.Response:
         to revoke the API key
     """
     api_key = APIKey.from_pk(
-        hash, include_dead=True, _404=True, asrt=ApikeyPermissions.REVOKE_OTHERS)
+        hash,
+        include_dead=True,
+        _404=True,
+        asrt=ApikeyPermissions.REVOKE_OTHERS,
+    )
     if api_key.revoked:
         raise APIException(f'APIKey {hash} is already revoked.')
     api_key.revoked = True
@@ -230,7 +242,7 @@ def revoke_all_api_keys(user: User) -> flask.Response:
     :statuscode 403: User does not have permission to revoke API keys
     """
     APIKey.update_many(
-        pks=APIKey.hashes_from_user(user.id),
-        update={'revoked': True})
+        pks=APIKey.hashes_from_user(user.id), update={'revoked': True}
+    )
     db.session.commit()
     return flask.jsonify('All api keys have been revoked.')

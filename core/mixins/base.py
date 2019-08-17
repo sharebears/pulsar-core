@@ -1,9 +1,18 @@
+from collections import defaultdict
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar, Dict, Union, List
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from flask_sqlalchemy import BaseQuery, Model
-from collections import defaultdict
-from sqlalchemy import func, and_
+from sqlalchemy import and_, func
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.session import make_transient_to_detached
 from sqlalchemy.sql.elements import BinaryExpression
@@ -17,7 +26,6 @@ PKB = TypeVar('PKB', bound='PKBase')
 
 
 class BaseFunctionalityMixin:
-
     @classmethod
     def assign_attrs(cls, **kwargs):
         for key, val in kwargs.items():
@@ -25,13 +33,17 @@ class BaseFunctionalityMixin:
 
 
 class TestDataPopulator:
-
     @staticmethod
     def add_permissions(*permissions):
-        permissions = [p if not isinstance(p, Enum) else p.value for p in permissions]
+        permissions = [
+            p if not isinstance(p, Enum) else p.value for p in permissions
+        ]
         db.engine.execute(
             f"""INSERT INTO users_permissions (user_id, permission) VALUES
-            (1, '""" + "'), (1, '".join(permissions) + "')")
+            (1, '"""
+            + "'), (1, '".join(permissions)
+            + "')"
+        )
 
 
 class PKBase(Model, BaseFunctionalityMixin):
@@ -45,10 +57,7 @@ class PKBase(Model, BaseFunctionalityMixin):
     __serializer__: Optional[Type['Serializer']] = None
 
     @classmethod
-    def from_cache(cls,
-                   key: str,
-                   *,
-                   query: BaseQuery = None) -> Optional[PKB]:
+    def from_cache(cls, key: str, *, query: BaseQuery = None) -> Optional[PKB]:
         data = cache.get(key)
         obj = cls._create_obj_from_cache(data)
         if obj:
@@ -61,8 +70,7 @@ class PKBase(Model, BaseFunctionalityMixin):
         return obj
 
     @classmethod
-    def _create_obj_from_cache(cls: Type[PKB],
-                               data: Any) -> Optional[PKB]:
+    def _create_obj_from_cache(cls: Type[PKB], data: Any) -> Optional[PKB]:
         if cls._valid_data(data):
             obj = cls(**data)
             make_transient_to_detached(obj)
@@ -79,24 +87,28 @@ class PKBase(Model, BaseFunctionalityMixin):
         :param data: The stored object data from the cache to validate
         :return:     Whether or not the data is valid
         """
-        return (bool(data)
-                and isinstance(data, dict)
-                and set(data.keys()) == set(cls.__table__.columns.keys()))
+        return (
+            bool(data)
+            and isinstance(data, dict)
+            and set(data.keys()) == set(cls.__table__.columns.keys())
+        )
 
     @classmethod
-    def get_many(cls: Type[PKB],
-                 *,
-                 key: str = None,
-                 filter: BinaryExpression = None,
-                 order: BinaryExpression = None,
-                 required_properties: tuple = (),
-                 include_dead: bool = False,
-                 asrt: Union[str, Enum] = None,
-                 page: int = None,
-                 limit: Optional[int] = 50,
-                 reverse: bool = False,
-                 pks: List[Union[int, str]] = None,
-                 expr_override: BinaryExpression = None) -> List[PKB]:
+    def get_many(
+        cls: Type[PKB],
+        *,
+        key: str = None,
+        filter: BinaryExpression = None,
+        order: BinaryExpression = None,
+        required_properties: tuple = (),
+        include_dead: bool = False,
+        asrt: Union[str, Enum] = None,
+        page: int = None,
+        limit: Optional[int] = 50,
+        reverse: bool = False,
+        pks: List[Union[int, str]] = None,
+        expr_override: BinaryExpression = None,
+    ) -> List[PKB]:
         """
         An abstracted function to get a list of PKs from the cache with a cache key,
         and query for those IDs if the key does not exist. If the query needs to be ran,
@@ -132,11 +144,13 @@ class PKBase(Model, BaseFunctionalityMixin):
         """
         extra_pks: List[Union[int, str]] = []
         if pks is None:
-            pks = cls.get_pks_of_many(key, filter, order, include_dead, expr_override)
+            pks = cls.get_pks_of_many(
+                key, filter, order, include_dead, expr_override
+            )
         if reverse:
             pks.reverse()
         if page is not None and limit is not None:
-            all_next_pks = pks[(page - 1) * limit:]
+            all_next_pks = pks[(page - 1) * limit :]
             pks, extra_pks = all_next_pks[:limit], all_next_pks[limit:]
 
         models: List[PKB] = []
@@ -147,23 +161,28 @@ class PKBase(Model, BaseFunctionalityMixin):
             # Check permissions on the models and filter out unwanted ones.
             models = [m for m in models if m.can_access(asrt)]
             if required_properties:
-                models = [m for m in models if all(
-                    getattr(m, rp, False) for rp in required_properties)]
+                models = [
+                    m
+                    for m in models
+                    if all(getattr(m, rp, False) for rp in required_properties)
+                ]
 
             # End pagination loop and return models.
             if limit is None or page or not extra_pks:
                 break
-            pks = extra_pks[:abs(limit - len(models))]
-            extra_pks = extra_pks[abs(limit - len(models)):]
+            pks = extra_pks[: abs(limit - len(models))]
+            extra_pks = extra_pks[abs(limit - len(models)) :]
         return list(models)
 
     @classmethod
-    def get_pks_of_many(cls,
-                        key: str = None,
-                        filter: BinaryExpression = None,
-                        order: BinaryExpression = None,
-                        include_dead: bool = False,
-                        expr_override: BinaryExpression = None) -> List[Union[int, str]]:
+    def get_pks_of_many(
+        cls,
+        key: str = None,
+        filter: BinaryExpression = None,
+        order: BinaryExpression = None,
+        include_dead: bool = False,
+        expr_override: BinaryExpression = None,
+    ) -> List[Union[int, str]]:
         """
         Get a list of object IDs meeting query criteria. Fetching from the
         cache with the provided cache key will be attempted first; if the cache
@@ -185,27 +204,44 @@ class PKBase(Model, BaseFunctionalityMixin):
         pks = cache.get(key) if key else None
         if not pks or not isinstance(pks, list):
             if expr_override is not None:
-                pks = [x[0] if len(x) == 1 else dict(x) for x in db.session.execute(expr_override)]
+                pks = [
+                    x[0] if len(x) == 1 else dict(x)
+                    for x in db.session.execute(expr_override)
+                ]
             else:
                 primary_key = cls.get_primary_key()
                 if isinstance(primary_key, list):
                     query = cls._construct_query(
-                        db.session.query(*(getattr(cls, k) for k in primary_key)), filter, order)
+                        db.session.query(
+                            *(getattr(cls, k) for k in primary_key)
+                        ),
+                        filter,
+                        order,
+                    )
                 else:
                     query = cls._construct_query(
-                        db.session.query(getattr(cls, primary_key)), filter, order)
+                        db.session.query(getattr(cls, primary_key)),
+                        filter,
+                        order,
+                    )
                 if not include_dead and cls.__deletion_attr__:
-                    query = query.filter(getattr(cls, cls.__deletion_attr__) == 'f')
-                pks = [x[0] if len(x) == 1 else x._asdict() for x in query.all()]
+                    query = query.filter(
+                        getattr(cls, cls.__deletion_attr__) == 'f'
+                    )
+                pks = [
+                    x[0] if len(x) == 1 else x._asdict() for x in query.all()
+                ]
             if key:
                 cache.set(key, pks)
         return pks
 
     @classmethod
-    def populate_models_from_pks(cls,
-                                 models: List[PKB],
-                                 pks: List[Union[str, int]],
-                                 filter: BinaryExpression = None) -> None:
+    def populate_models_from_pks(
+        cls,
+        models: List[PKB],
+        pks: List[Union[str, int]],
+        filter: BinaryExpression = None,
+    ) -> None:
         """
         Given a list of primary keys, fetch the objects corresponding to them from
         the cache and the database.
@@ -225,22 +261,33 @@ class PKBase(Model, BaseFunctionalityMixin):
         if uncached_pks:
             if not isinstance(uncached_pks[0], dict):
                 qry_models: Dict[Union[int, str], PKB] = {
-                    obj.primary_key: obj for obj in
-                    cls._construct_query(cls.query.filter(
-                        getattr(cls, cls.get_primary_key()).in_(uncached_pks)),
-                        filter).all()
-                        }
+                    obj.primary_key: obj
+                    for obj in cls._construct_query(
+                        cls.query.filter(
+                            getattr(cls, cls.get_primary_key()).in_(
+                                uncached_pks
+                            )
+                        ),
+                        filter,
+                    ).all()
+                }
             else:
                 uncached_pks_by_pk = defaultdict(list)
                 for pk in uncached_pks:
                     for k, v in pk.items():
                         uncached_pks_by_pk[k].append(v)
                 qry_models: Dict[Union[int, str], PKB] = {
-                    tuple(obj.primary_key.values()): obj for obj in
-                    cls._construct_query(cls.query.filter(and_(
-                        getattr(cls, k).in_(uncached_pks_by_pk[k]) for k in uncached_pks_by_pk)),
-                        filter).all()
-                        }
+                    tuple(obj.primary_key.values()): obj
+                    for obj in cls._construct_query(
+                        cls.query.filter(
+                            and_(
+                                getattr(cls, k).in_(uncached_pks_by_pk[k])
+                                for k in uncached_pks_by_pk
+                            )
+                        ),
+                        filter,
+                    ).all()
+                }
             cache.cache_models(qry_models.values())  # type: ignore
             for pk in uncached_pks:
                 if isinstance(pk, dict):
@@ -249,9 +296,11 @@ class PKBase(Model, BaseFunctionalityMixin):
                     models.append(qry_models[pk])
 
     @staticmethod
-    def _construct_query(query: BaseQuery,
-                         filter: BinaryExpression = None,
-                         order: BinaryExpression = None) -> BaseQuery:
+    def _construct_query(
+        query: BaseQuery,
+        filter: BinaryExpression = None,
+        order: BinaryExpression = None,
+    ) -> BaseQuery:
         """
         A convenience function to save code space for query generations. Takes filters
         and order_bys and applies them to the query, returning a query ready to be ran.
@@ -283,11 +332,13 @@ class PKBase(Model, BaseFunctionalityMixin):
         return model
 
     @classmethod
-    def count(cls,
-              *,
-              key: str,
-              attribute: InstrumentedAttribute,
-              filter: BinaryExpression = None) -> int:
+    def count(
+        cls,
+        *,
+        key: str,
+        attribute: InstrumentedAttribute,
+        filter: BinaryExpression = None,
+    ) -> int:
         """
         An abstracted function for counting a number of elements matching a query. If the
         passed cache key exists, its value will be returned; otherwise, the passed query
@@ -301,7 +352,9 @@ class PKBase(Model, BaseFunctionalityMixin):
         """
         count = cache.get(key)
         if not isinstance(count, int):
-            query = cls._construct_query(db.session.query(func.count(attribute)), filter)
+            query = cls._construct_query(
+                db.session.query(func.count(attribute)), filter
+            )
             count = query.scalar()
             cache.set(key, count)
         return count

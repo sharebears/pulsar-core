@@ -18,8 +18,9 @@ PLUGINS: List[Any] = [core]
 
 
 def create_app():
-
-    class Config(*(plug.Config for plug in PLUGINS if hasattr(plug, 'Config'))):
+    class Config(
+        *(plug.Config for plug in PLUGINS if hasattr(plug, 'Config'))
+    ):
         pass
 
     app = flask.Flask(__name__)
@@ -30,24 +31,36 @@ def create_app():
     return app
 
 
-HASHED_PASSWORD_1 = ('pbkdf2:sha256:50000$XwKgylbI$a4868823e7889553e3cb9f'
-                     'd922ad08f39c514c2f018cee3c07cd6b9322cc107d')  # 12345
-HASHED_PASSWORD_2 = ('pbkdf2:sha256:50000$xH3qCWmd$a82cb27879cce1cb4de401'
-                     'fb8c171a42ca19bb0ca7b7e0ba7c6856087e25d3a8')  # abcdefg
-HASHED_PASSWORD_3 = ('pbkdf2:sha256:50000$WnhbJYei$7af6aca3be169fb6a8b58b4'
-                     'fb666f0325bba59633eb4b4e292afeafbb9f89fa1')
+HASHED_PASSWORD_1 = (
+    'pbkdf2:sha256:50000$XwKgylbI$a4868823e7889553e3cb9f'
+    'd922ad08f39c514c2f018cee3c07cd6b9322cc107d'
+)  # 12345
+HASHED_PASSWORD_2 = (
+    'pbkdf2:sha256:50000$xH3qCWmd$a82cb27879cce1cb4de401'
+    'fb8c171a42ca19bb0ca7b7e0ba7c6856087e25d3a8'
+)  # abcdefg
+HASHED_PASSWORD_3 = (
+    'pbkdf2:sha256:50000$WnhbJYei$7af6aca3be169fb6a8b58b4'
+    'fb666f0325bba59633eb4b4e292afeafbb9f89fa1'
+)
 
 CODE_1 = '1234567890abcdefghij1234'
 CODE_2 = 'abcdefghijklmnopqrstuvwx'
 CODE_3 = '234567890abcdefghij12345'
 CODE_4 = 'zbjfeaofe38232r2qpfewfoo'
 
-HASHED_CODE_1 = ('pbkdf2:sha256:50000$rAUuaX7W$01db64c80f4057c8fdcaddb13cb0'
-                 '01c712d7052717df3e38d647aae5eb1ab4f8')
-HASHED_CODE_2 = ('pbkdf2:sha256:50000$CH2S6Ojr$71fdc1e523d2e6d063780392c83a'
-                 '6b6accbe0ea22bfe44c271e730001181f737')
-HASHED_CODE_3 = ('pbkdf2:sha256:50000$DgIO3cu1$cdc9e2d1060c5f339e1cc7cf247d'
-                 'f32f49a8f94b4de45b2e149f4c00068ece00')
+HASHED_CODE_1 = (
+    'pbkdf2:sha256:50000$rAUuaX7W$01db64c80f4057c8fdcaddb13cb0'
+    '01c712d7052717df3e38d647aae5eb1ab4f8'
+)
+HASHED_CODE_2 = (
+    'pbkdf2:sha256:50000$CH2S6Ojr$71fdc1e523d2e6d063780392c83a'
+    '6b6accbe0ea22bfe44c271e730001181f737'
+)
+HASHED_CODE_3 = (
+    'pbkdf2:sha256:50000$DgIO3cu1$cdc9e2d1060c5f339e1cc7cf247d'
+    'f32f49a8f94b4de45b2e149f4c00068ece00'
+)
 
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -79,10 +92,15 @@ def check_dictionary(response, expected, list_=False, strict=False):
 def add_permissions(app_, *permissions):
     "Insert permissions into database for user_id 1 (authed user)."
     assert isinstance(app_, flask.Flask)
-    permissions = [p if not isinstance(p, Enum) else p.value for p in permissions]
+    permissions = [
+        p if not isinstance(p, Enum) else p.value for p in permissions
+    ]
     db.engine.execute(
         f"""INSERT INTO users_permissions (user_id, permission) VALUES
-        (1, '""" + "'), (1, '".join(permissions) + "')")
+        (1, '"""
+        + "'), (1, '".join(permissions)
+        + "')"
+    )
 
 
 def check_dupe_in_list(list_):
@@ -143,6 +161,7 @@ def set_globals(app_):
         flask.g.user_session = None
         if not hasattr(flask.g, 'user'):
             flask.g.user = None
+
     with flask.appcontext_pushed.connected_to(handler, app_):
         yield
 
@@ -151,6 +170,7 @@ def set_globals(app_):
 def set_user(app_, user):
     def handler(sender, **kwargs):
         flask.g.user = user
+
     with flask.appcontext_pushed.connected_to(handler, app_):
         yield
 

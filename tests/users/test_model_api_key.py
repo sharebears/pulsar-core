@@ -20,7 +20,9 @@ def test_api_key_collision(app, client, monkeypatch):
     # First four are the the id and csrf_token, last one is the 16char key.
     global HEXES
     HEXES = iter([CODE_2[:10], CODE_3[:10], CODE_1[:16]])
-    monkeypatch.setattr('core.users.models.secrets.token_urlsafe', hex_generator)
+    monkeypatch.setattr(
+        'core.users.models.secrets.token_urlsafe', hex_generator
+    )
 
     raw_key, api_key = APIKey.new(2, '127.0.0.2', 'UA', False)
     assert len(raw_key) == 26
@@ -57,28 +59,38 @@ def test_serialize_detailed(app, authed_client):
     add_permissions(app, 'api_keys_view_others')
     api_key = APIKey.from_pk('1234567890', include_dead=True)
     data = NewJSONEncoder().default(api_key)
-    check_dictionary(data, {
-        'hash': '1234567890',
-        'user_id': 2,
-        'ip': '0.0.0.0',
-        'user_agent': None,
-        'revoked': True,
-        'permanent': False,
-        'timeout': 3600,
-        'permissions': [],
-        })
+    check_dictionary(
+        data,
+        {
+            'hash': '1234567890',
+            'user_id': 2,
+            'ip': '0.0.0.0',
+            'user_agent': None,
+            'revoked': True,
+            'permanent': False,
+            'timeout': 3600,
+            'permissions': [],
+        },
+    )
     assert 'last_used' in data and isinstance(data['last_used'], int)
 
 
 def test_serialize_self(app, authed_client):
     api_key = APIKey.from_pk('abcdefghij')
     data = NewJSONEncoder().default(api_key)
-    check_dictionary(data, {
-        'hash': 'abcdefghij',
-        'user_id': 1,
-        'ip': '0.0.0.0',
-        'user_agent': None,
-        'revoked': False,
-        'permissions': ['sample_permission', 'sample_2_permission', 'sample_3_permission'],
-        })
+    check_dictionary(
+        data,
+        {
+            'hash': 'abcdefghij',
+            'user_id': 1,
+            'ip': '0.0.0.0',
+            'user_agent': None,
+            'revoked': False,
+            'permissions': [
+                'sample_permission',
+                'sample_2_permission',
+                'sample_3_permission',
+            ],
+        },
+    )
     assert 'last_used' in data and isinstance(data['last_used'], int)

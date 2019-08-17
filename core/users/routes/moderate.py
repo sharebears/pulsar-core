@@ -16,28 +16,38 @@ from . import bp
 
 app = flask.current_app
 
-MODERATE_USER_SCHEMA = Schema({
-    'email': Email(),
-    'password': Match(PASSWORD_REGEX, msg=(
-        'Password must be between 12 and 512 characters and contain at least 1 letter, '
-        '1 number, and 1 special character')),
-    'uploaded': All(int, Range(min=0, max=9223372036854775808)),
-    'downloaded': All(int, Range(min=0, max=9223372036854775808)),
-    'invites': All(int, Range(min=0, max=2147483648)),
-    'permissions': PermissionsDict(restrict=UserPermissions.MODERATE_ADVANCED),
-    })
+MODERATE_USER_SCHEMA = Schema(
+    {
+        'email': Email(),
+        'password': Match(
+            PASSWORD_REGEX,
+            msg=(
+                'Password must be between 12 and 512 characters and contain at least 1 letter, '
+                '1 number, and 1 special character'
+            ),
+        ),
+        'uploaded': All(int, Range(min=0, max=9223372036854775808)),
+        'downloaded': All(int, Range(min=0, max=9223372036854775808)),
+        'invites': All(int, Range(min=0, max=2147483648)),
+        'permissions': PermissionsDict(
+            restrict=UserPermissions.MODERATE_ADVANCED
+        ),
+    }
+)
 
 
 @bp.route('/users/<int:user_id>', methods=['PUT'])
 @require_permission(UserPermissions.MODERATE)
 @validate_data(MODERATE_USER_SCHEMA)
-def moderate_user(user_id: int,
-                  email: str = None,
-                  password: str = None,
-                  uploaded: int = None,
-                  downloaded: int = None,
-                  invites: int = None,
-                  permissions: Dict[str, bool] = None) -> flask.Response:
+def moderate_user(
+    user_id: int,
+    email: str = None,
+    password: str = None,
+    uploaded: int = None,
+    downloaded: int = None,
+    invites: int = None,
+    permissions: Dict[str, bool] = None,
+) -> flask.Response:
     """
     Moderate a user - change password for them, alter stats, modify basic permissions,
     etc.
@@ -93,8 +103,7 @@ def moderate_user(user_id: int,
     return flask.jsonify(user)
 
 
-def change_user_permissions(user: User,
-                            permissions: Dict[str, bool]) -> None:
+def change_user_permissions(user: User, permissions: Dict[str, bool]) -> None:
     """
     Change the permissions belonging to a user. Permissions can be
     added to a user, deleted from a user, and ungranted from a user.
@@ -119,10 +128,9 @@ def change_user_permissions(user: User,
     user.del_property_cache('permissions')
 
 
-def alter_permissions(user: User,
-                      to_add: Set[str],
-                      to_ungrant: Set[str],
-                      to_delete: Set[str]) -> None:
+def alter_permissions(
+    user: User, to_add: Set[str], to_ungrant: Set[str], to_delete: Set[str]
+) -> None:
     """
     Apply the permission changes to the database. The permission model to
     apply the changes to is passed as a parameter.
@@ -135,17 +143,16 @@ def alter_permissions(user: User,
     """
     for permission in to_delete:
         model = UserPermission.from_attrs(
-            user_id=user.id,
-            permission=permission)
+            user_id=user.id, permission=permission
+        )
         db.session.delete(model)
     db.session.commit()
     for perm_name in to_add:
-        db.session.add(UserPermission(
-            user_id=user.id,
-            permission=perm_name))
+        db.session.add(UserPermission(user_id=user.id, permission=perm_name))
     for perm_name in to_ungrant:
-        db.session.add(UserPermission(
-            user_id=user.id,
-            permission=perm_name,
-            granted=False))
+        db.session.add(
+            UserPermission(
+                user_id=user.id, permission=perm_name, granted=False
+            )
+        )
     db.session.commit()

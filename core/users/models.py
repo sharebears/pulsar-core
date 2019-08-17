@@ -13,7 +13,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from core import APIException, cache, db
 from core.mixins import SinglePKMixin
 from core.users.permissions import SitePermissions
-from core.users.serializers import APIKeySerializer, InviteSerializer, UserSerializer
+from core.users.serializers import (
+    APIKeySerializer,
+    InviteSerializer,
+    UserSerializer,
+)
 from core.utils import cached_property
 
 if TYPE_CHECKING:
@@ -37,30 +41,42 @@ class User(db.Model, SinglePKMixin):
     enabled: bool = db.Column(db.Boolean, nullable=False, server_default='t')
     locked: bool = db.Column(db.Boolean, nullable=False, server_default='f')
     user_class_id: int = db.Column(
-        db.Integer, db.ForeignKey('user_classes.id'), nullable=False, server_default='1')
-    inviter_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+        db.Integer,
+        db.ForeignKey('user_classes.id'),
+        nullable=False,
+        server_default='1',
+    )
+    inviter_id: int = db.Column(
+        db.Integer, db.ForeignKey('users.id'), index=True
+    )
     invites: int = db.Column(db.Integer, nullable=False, server_default='0')
 
-    uploaded: int = db.Column(db.BigInteger, nullable=False, server_default='5368709120')  # 5 GB
-    downloaded: int = db.Column(db.BigInteger, nullable=False, server_default='0')
+    uploaded: int = db.Column(
+        db.BigInteger, nullable=False, server_default='5368709120'
+    )  # 5 GB
+    downloaded: int = db.Column(
+        db.BigInteger, nullable=False, server_default='0'
+    )
 
     @declared_attr
     def __table_args__(cls):
-        return (db.Index('ix_users_username', func.lower(cls.username), unique=True),
-                db.Index('ix_users_email', func.lower(cls.email)))
+        return (
+            db.Index(
+                'ix_users_username', func.lower(cls.username), unique=True
+            ),
+            db.Index('ix_users_email', func.lower(cls.email)),
+        )
 
     @classmethod
     def from_username(cls, username: str) -> 'User':
         username = username.lower()
         return cls.from_query(
             key=cls.__cache_key_from_username__.format(username=username),
-            filter=func.lower(cls.username) == username)
+            filter=func.lower(cls.username) == username,
+        )
 
     @classmethod
-    def new(cls,
-            username: str,
-            password: str,
-            email: str) -> 'User':
+    def new(cls, username: str, password: str, email: str) -> 'User':
         """
         Alternative constructor which generates a password hash and
         lowercases and strips leading and trailing spaces from the email.
@@ -70,7 +86,8 @@ class User(db.Model, SinglePKMixin):
         return super()._new(
             username=username,
             passhash=generate_password_hash(password),
-            email=email.lower().strip())
+            email=email.lower().strip(),
+        )
 
     @cached_property
     def user_class(self):
@@ -79,6 +96,7 @@ class User(db.Model, SinglePKMixin):
     @cached_property
     def secondary_classes(self) -> List[str]:
         from core.permissions.models import SecondaryClass
+
         secondary_classes = SecondaryClass.from_user(self.id)
         return [sc.name for sc in secondary_classes]
 
@@ -125,11 +143,14 @@ class User(db.Model, SinglePKMixin):
 
     @cached_property
     def basic_permissions(self) -> List[str]:
-        return [p for p in self.permissions if p in app.config['BASIC_PERMISSIONS']]
+        return [
+            p for p in self.permissions if p in app.config['BASIC_PERMISSIONS']
+        ]
 
     @cached_property
     def user_class_model(self) -> 'UserClass_':
         from core.permissions.models import UserClass
+
         return UserClass.from_pk(self.user_class_id)
 
     def belongs_to_user(self) -> bool:
@@ -159,18 +180,22 @@ class Invite(db.Model, SinglePKMixin):
 
     code: str = db.Column(db.String(24), primary_key=True)
     inviter_id: int = db.Column(
-        db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    invitee_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+        db.Integer, db.ForeignKey('users.id'), nullable=False, index=True
+    )
+    invitee_id: int = db.Column(
+        db.Integer, db.ForeignKey('users.id'), index=True
+    )
     email: str = db.Column(db.String(255), nullable=False)
-    time_sent: datetime = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    time_sent: datetime = db.Column(
+        db.DateTime(timezone=True), server_default=func.now()
+    )
     from_ip: str = db.Column(INET, nullable=False, server_default='0.0.0.0')
-    expired: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
+    expired: bool = db.Column(
+        db.Boolean, nullable=False, index=True, server_default='f'
+    )
 
     @classmethod
-    def new(cls,
-            inviter_id: int,
-            email: str,
-            ip: int) -> 'Invite':
+    def new(cls, inviter_id: int, email: str, ip: int) -> 'Invite':
         """
         Generate a random invite code.
 
@@ -187,13 +212,13 @@ class Invite(db.Model, SinglePKMixin):
             inviter_id=inviter_id,
             code=code,
             email=email.lower().strip(),
-            from_ip=ip)
+            from_ip=ip,
+        )
 
     @classmethod
-    def from_inviter(cls,
-                     inviter_id: int,
-                     include_dead: bool = False,
-                     used: bool = False) -> List['Invite']:
+    def from_inviter(
+        cls, inviter_id: int, include_dead: bool = False, used: bool = False
+    ) -> List['Invite']:
         """
         Get all invites sent by a user.
 
@@ -210,7 +235,8 @@ class Invite(db.Model, SinglePKMixin):
             key=cls.__cache_key_of_user__.format(user_id=inviter_id),
             filter=filter,
             order=cls.time_sent.desc(),  # type: ignore
-            include_dead=include_dead or used)
+            include_dead=include_dead or used,
+        )
 
     @cached_property
     def invitee(self) -> User:
@@ -233,25 +259,36 @@ class APIKey(db.Model, SinglePKMixin):
     __deletion_attr__ = 'revoked'
 
     hash: str = db.Column(db.String(10), primary_key=True)
-    user_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    user_id: int = db.Column(
+        db.Integer, db.ForeignKey('users.id'), nullable=False, index=True
+    )
     keyhashsalt: str = db.Column(db.String(128))
     last_used: datetime = db.Column(
-        db.DateTime(timezone=True), nullable=False, server_default=func.now())
+        db.DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     ip: str = db.Column(INET, nullable=False, server_default='0.0.0.0')
     user_agent: str = db.Column(db.Text)
-    revoked: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
-    permanent: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='f')
-    timeout: bool = db.Column(db.Integer, nullable=False, server_default='3600')
+    revoked: bool = db.Column(
+        db.Boolean, nullable=False, index=True, server_default='f'
+    )
+    permanent: bool = db.Column(
+        db.Boolean, nullable=False, index=True, server_default='f'
+    )
+    timeout: bool = db.Column(
+        db.Integer, nullable=False, server_default='3600'
+    )
     permissions: str = db.Column(ARRAY(db.String(36)))
 
     @classmethod
-    def new(cls,
-            user_id: int,
-            ip: str,
-            user_agent: str,
-            permanent: bool = False,
-            timeout: int = 60 * 30,
-            permissions: List[str] = None) -> Tuple[str, 'APIKey']:
+    def new(
+        cls,
+        user_id: int,
+        ip: str,
+        user_agent: str,
+        permanent: bool = False,
+        timeout: int = 60 * 30,
+        permissions: List[str] = None,
+    ) -> Tuple[str, 'APIKey']:
         """
         Create a new API Key with randomly generated secret keys and the
         user details passed in as params. Generated keys are hashed and
@@ -277,13 +314,14 @@ class APIKey(db.Model, SinglePKMixin):
             user_agent=user_agent,
             permanent=permanent,
             timeout=timeout,
-            permissions=permissions or [])
+            permissions=permissions or [],
+        )
         return (hash + key, api_key)
 
     @classmethod
-    def from_user(cls,
-                  user_id: int,
-                  include_dead: bool = False) -> List['APIKey']:
+    def from_user(
+        cls, user_id: int, include_dead: bool = False
+    ) -> List['APIKey']:
         """
         Get all API keys owned by a user.
 
@@ -295,13 +333,15 @@ class APIKey(db.Model, SinglePKMixin):
         return cls.get_many(
             key=cls.__cache_key_of_user__.format(user_id=user_id),
             filter=cls.user_id == user_id,
-            include_dead=include_dead)
+            include_dead=include_dead,
+        )
 
     @classmethod
     def hashes_from_user(cls, user_id: int) -> List[Union[int, str]]:
         return cls.get_pks_of_many(
             key=cls.__cache_key_of_user__.format(user_id=user_id),
-            filter=cls.user_id == user_id)
+            filter=cls.user_id == user_id,
+        )
 
     def check_key(self, key: str) -> bool:
         """

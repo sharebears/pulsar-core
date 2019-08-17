@@ -20,4 +20,6 @@ def BoolGET(val):
             return True
         elif val == '0' or val.lower() == 'false':
             return False
-    raise Invalid('boolean must be "1", "true", "0", or "false" (case insensitive)')
+    raise Invalid(
+        'boolean must be "1", "true", "0", or "false" (case insensitive)'
+    )

@@ -13,6 +13,7 @@ class Cache(RedisCache):
     key get/set/inc/del accesses are logged in a global variable for debugging
     purposes.
     """
+
     _client: Redis
 
     def __init__(self) -> None:
@@ -23,10 +24,9 @@ class Cache(RedisCache):
         # Required flask extension method.
         super().__init__(**app.config['REDIS_PARAMS'])
 
-    def inc(self,
-            key: str,
-            delta: int = 1,
-            timeout: int = None) -> Optional[int]:
+    def inc(
+        self, key: str, delta: int = 1, timeout: int = None
+    ) -> Optional[int]:
         """
         Increment a cache key if it exists, otherwise create it
         and optionally set a timeout.
@@ -85,10 +85,9 @@ class Cache(RedisCache):
         flask.g.cache_keys['has'].add(key)
         return super().has(key)
 
-    def set(self,
-            key: str,
-            value: Union[int, str, list, dict],
-            timeout: int = None) -> bool:
+    def set(
+        self, key: str, value: Union[int, str, list, dict], timeout: int = None
+    ) -> bool:
         """
         Add a new key/value to the cache (overwrites value,
         if key already exists in the cache).
@@ -109,9 +108,7 @@ class Cache(RedisCache):
             flask.g.cache_keys['set'].add(key)
         return result
 
-    def set_many(self,
-                 mapping: Dict[str, Any],
-                 timeout: int = None) -> bool:
+    def set_many(self, mapping: Dict[str, Any], timeout: int = None) -> bool:
         """
         Add multiple new key/value pairs to the cache (overwrites value,
         if key already exists in the cache).
@@ -166,9 +163,7 @@ class Cache(RedisCache):
             flask.g.cache_keys['ttl'].add(key)
         return value
 
-    def cache_model(self,
-                    model,
-                    timeout: int = None) -> Optional[str]:
+    def cache_model(self, model, timeout: int = None) -> Optional[str]:
         """
         Cache a SQLAlchemy model. Does nothing when ``model`` is ``None``.
 
@@ -189,9 +184,7 @@ class Cache(RedisCache):
             return model.cache_key
         return None
 
-    def cache_models(self,
-                     models: list,
-                     timeout: int = None) -> None:
+    def cache_models(self, models: list, timeout: int = None) -> None:
         """
         Cache a SQLAlchemy model. Does nothing when ``model`` is ``None``.
 

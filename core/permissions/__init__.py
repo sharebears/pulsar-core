@@ -11,27 +11,30 @@ app = flask.current_app
 
 class PermissionsEnum(Enum):
     """This class is used to track the permission subclasses."""
+
     pass
 
 
 class Permissions:
     _core_permissions_loaded = False
-    permission_regexes: dict = {
-        'basic': [],
-        'full': [],
-        }
+    permission_regexes: dict = {'basic': [], 'full': []}
 
     @classmethod
-    def is_valid_permission(cls,
-                            permission: str,
-                            permissioned: bool = True) -> bool:
+    def is_valid_permission(
+        cls, permission: str, permissioned: bool = True
+    ) -> bool:
         if permissioned:
             if permission in cls.get_all_permissions():
                 return True
-            return any(r.match(permission) for r in chain(*cls.permission_regexes.values()))
+            return any(
+                r.match(permission)
+                for r in chain(*cls.permission_regexes.values())
+            )
         if permission in app.config['BASIC_PERMISSIONS']:
             return True
-        return any(r.match(permission) for r in cls.permission_regexes['basic'])
+        return any(
+            r.match(permission) for r in cls.permission_regexes['basic']
+        )
 
     @classmethod
     def get_all_permissions(cls):
@@ -49,4 +52,8 @@ class Permissions:
 
         :return: The list of permissions
         """
-        return list(chain([e.value for c in PermissionsEnum.__subclasses__() for e in c]))
+        return list(
+            chain(
+                [e.value for c in PermissionsEnum.__subclasses__() for e in c]
+            )
+        )

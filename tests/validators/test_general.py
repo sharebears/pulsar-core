@@ -5,10 +5,12 @@ from core.validators import BoolGET
 
 
 @pytest.mark.parametrize(
-    'inputs, output', [
+    'inputs, output',
+    [
         ([True, '1', 'TruE', 'true'], True),
         ([False, '0', 'FaLsE', 'false'], False),
-    ])
+    ],
+)
 def test_BoolGET(inputs, output):
     """Bool get accepts all provided values."""
     for input_ in inputs:

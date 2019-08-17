@@ -28,7 +28,9 @@ def PermissionsList(perm_list: List[str]) -> List[str]:
     else:
         raise Invalid('Permissions must be in a list,')
     if invalid:
-        raise Invalid(f'The following permissions are invalid: {", ".join(invalid)},')
+        raise Invalid(
+            f'The following permissions are invalid: {", ".join(invalid)},'
+        )
     return perm_list
 
 
@@ -70,13 +72,16 @@ class PermissionsDict:
         :return:               The input value
         :raises Invalid:       A permission name is invalid or a value isn't a bool
         """
-        permissioned = self.restrict is None or flask.g.user.has_permission(self.restrict)
+        permissioned = self.restrict is None or flask.g.user.has_permission(
+            self.restrict
+        )
         if isinstance(permissions, dict):
             for perm_name, action in permissions.items():
                 if not isinstance(action, bool):
                     raise Invalid('permission actions must be booleans')
-                elif (not Permissions.is_valid_permission(perm_name, permissioned)
-                      and not (permissioned and action is False)):
+                elif not Permissions.is_valid_permission(
+                    perm_name, permissioned
+                ) and not (permissioned and action is False):
                     # Do not disallow removal of non-existent permissions.
                     raise Invalid(f'{perm_name} is not a valid permission')
         else:
@@ -84,8 +89,9 @@ class PermissionsDict:
         return permissions
 
 
-def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
-                      permissions: Dict[str, bool]) -> Tuple[Set[str], Set[str], Set[str]]:
+def check_permissions(
+    user: User, permissions: Dict[str, bool]  # noqa: C901 (McCabe complexity)
+) -> Tuple[Set[str], Set[str], Set[str]]:
     """
     The abstracted meat of the permission checkers. Takes the input and
     some model-specific information and returns permission information.
@@ -127,11 +133,15 @@ def check_permissions(user: User,  # noqa: C901 (McCabe complexity)
     if errors:
         message = []
         if 'add' in errors:
-            message.append(f'The following permissions could not be added: '
-                           f'{", ".join(errors["add"])}.')
+            message.append(
+                f'The following permissions could not be added: '
+                f'{", ".join(errors["add"])}.'
+            )
         if 'delete' in errors:
-            message.append(f'The following permissions could not be deleted: '
-                           f'{", ".join(errors["delete"])}.')
+            message.append(
+                f'The following permissions could not be deleted: '
+                f'{", ".join(errors["delete"])}.'
+            )
         raise APIException(' '.join(message))
 
     return add, ungrant, delete

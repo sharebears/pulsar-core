@@ -19,6 +19,7 @@ class NewJSONEncoder(JSONEncoder):
         dictionaries.
         """
         from core.mixins import PKBase
+
         if isinstance(obj, datetime):
             return int(obj.timestamp())
         if isinstance(obj, set):

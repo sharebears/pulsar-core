@@ -14,11 +14,13 @@ class Attribute:
     and permissioning happens.
     """
 
-    def __init__(self,
-                 permission: Union[str, Enum] = None,
-                 self_access: bool = True,
-                 default: bool = True,
-                 nested: Union[bool, tuple] = True) -> None:
+    def __init__(
+        self,
+        permission: Union[str, Enum] = None,
+        self_access: bool = True,
+        default: bool = True,
+        nested: Union[bool, tuple] = True,
+    ) -> None:
         """
         :param permission:  The permission needed to serialize this attribute
                             (``None`` means no permission necessary)
@@ -51,8 +53,14 @@ class Attribute:
 
         if isinstance(val, SinglePKMixin):
             return val.serialize(nested=nested)
-        elif isinstance(val, list) and any(isinstance(v, SinglePKMixin) for v in val):
-            return [obj.serialize(nested=nested) for obj in val if isinstance(obj, SinglePKMixin)]
+        elif isinstance(val, list) and any(
+            isinstance(v, SinglePKMixin) for v in val
+        ):
+            return [
+                obj.serialize(nested=nested)
+                for obj in val
+                if isinstance(obj, SinglePKMixin)
+            ]
         return val
 
     def can_serialize(self, name, obj, nested):
@@ -63,7 +71,8 @@ class Attribute:
         requirements.
         """
         has_permission = not self.permission or (
-            flask.g.user and flask.g.user.has_permission(self.permission))
+            flask.g.user and flask.g.user.has_permission(self.permission)
+        )
         has_self_access = self.self_access and obj.belongs_to_user()
 
         # `self.nested` is whether or not this attribute of /this/ object is serializable.
@@ -75,7 +84,11 @@ class Attribute:
         nested_bypass = self.nested or not nested
         nested_filter = isinstance(nested, tuple) and name not in nested
 
-        return (has_permission or has_self_access) and nested_bypass and not nested_filter
+        return (
+            (has_permission or has_self_access)
+            and nested_bypass
+            and not nested_filter
+        )
 
 
 class Serializer(BaseFunctionalityMixin):
@@ -91,8 +104,10 @@ class Serializer(BaseFunctionalityMixin):
         the serialized dictionary, if they match the passed kwarg criteria and
         user permissions.
         """
-        data = {name: attr.get_value(name, obj, nested)
-                for name, attr in cls.attributes().items()}
+        data = {
+            name: attr.get_value(name, obj, nested)
+            for name, attr in cls.attributes().items()
+        }
         if not all(v is None for v in data.values()):
             return data
         return None
@@ -101,4 +116,6 @@ class Serializer(BaseFunctionalityMixin):
     def attributes(cls) -> Dict[str, Attribute]:
         """Get all non-method attributes of the object."""
         attrs = inspect.getmembers(cls, lambda a: not inspect.isroutine(a))
-        return {name: attr for name, attr in attrs if isinstance(attr, Attribute)}
+        return {
+            name: attr for name, attr in attrs if isinstance(attr, Attribute)
+        }

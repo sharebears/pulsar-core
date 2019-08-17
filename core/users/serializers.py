@@ -1,5 +1,9 @@
 from core.mixins import Attribute, Serializer
-from core.users.permissions import ApikeyPermissions, InvitePermissions, UserPermissions
+from core.users.permissions import (
+    ApikeyPermissions,
+    InvitePermissions,
+    UserPermissions,
+)
 
 
 class UserSerializer(Serializer):
@@ -13,11 +17,16 @@ class UserSerializer(Serializer):
     email = Attribute(permission=UserPermissions.MODERATE)
     locked = Attribute(permission=UserPermissions.MODERATE)
     invites = Attribute(permission=UserPermissions.MODERATE)
-    inviter = Attribute(permission=UserPermissions.MODERATE, self_access=False, nested=False)
+    inviter = Attribute(
+        permission=UserPermissions.MODERATE, self_access=False, nested=False
+    )
     api_keys = Attribute(permission=UserPermissions.MODERATE, nested=False)
     basic_permissions = Attribute(
-        permission=UserPermissions.MODERATE, self_access=False, nested=False)
-    permissions = Attribute(permission=UserPermissions.MODERATE_ADVANCED, nested=False)
+        permission=UserPermissions.MODERATE, self_access=False, nested=False
+    )
+    permissions = Attribute(
+        permission=UserPermissions.MODERATE_ADVANCED, nested=False
+    )
 
 
 class InviteSerializer(Serializer):
@@ -26,8 +35,14 @@ class InviteSerializer(Serializer):
     time_sent = Attribute(permission=InvitePermissions.VIEW_OTHERS)
     expired = Attribute(permission=InvitePermissions.VIEW_OTHERS)
     invitee = Attribute(permission=InvitePermissions.VIEW_OTHERS)
-    from_ip = Attribute(permission=InvitePermissions.VIEW_OTHERS, self_access=False)
-    inviter = Attribute(permission=InvitePermissions.VIEW_OTHERS, nested=False, self_access=False)
+    from_ip = Attribute(
+        permission=InvitePermissions.VIEW_OTHERS, self_access=False
+    )
+    inviter = Attribute(
+        permission=InvitePermissions.VIEW_OTHERS,
+        nested=False,
+        self_access=False,
+    )
 
 
 class APIKeySerializer(Serializer):

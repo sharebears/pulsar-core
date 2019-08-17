@@ -17,6 +17,7 @@ def validate_data(schema: Schema) -> Callable:
 
     :param schema: A voluptuous Schema object.
     """
+
     def wrapper(func):
         @wraps(func)
         def new_function(*args, **kwargs):
@@ -28,11 +29,14 @@ def validate_data(schema: Schema) -> Callable:
                         kwargs.update(schema(get_request_data()))
                 except Invalid as e:
                     raise APIException(
-                        f'Invalid data: {e.msg} (key "{".".join([str(p) for p in e.path])}")')
+                        f'Invalid data: {e.msg} (key "{".".join([str(p) for p in e.path])}")'
+                    )
             else:
                 del kwargs['skip_validation']
             return func(*args, **kwargs)
+
         return new_function
+
     return wrapper
 
 

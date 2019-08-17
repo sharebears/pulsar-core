@@ -47,23 +47,30 @@ def view_invite(code: str) -> flask.Response:
     :statuscode 200: View successful
     :statuscode 404: Invite does not exist or user cannot view invite
     """
-    return flask.jsonify(Invite.from_pk(
-        code, include_dead=True, _404=True, asrt=InvitePermissions.VIEW_OTHERS))
+    return flask.jsonify(
+        Invite.from_pk(
+            code,
+            include_dead=True,
+            _404=True,
+            asrt=InvitePermissions.VIEW_OTHERS,
+        )
+    )
 
 
-VIEW_INVITES_SCHEMA = Schema({
-    Optional('used', default=False): BoolGET,
-    Optional('include_dead', default=False): BoolGET,
-    }, required=True)
+VIEW_INVITES_SCHEMA = Schema(
+    {
+        Optional('used', default=False): BoolGET,
+        Optional('include_dead', default=False): BoolGET,
+    },
+    required=True,
+)
 
 
 @bp.route('/invites', methods=['GET'])
 @require_permission(InvitePermissions.VIEW)
 @access_other_user(InvitePermissions.VIEW_OTHERS)
 @validate_data(VIEW_INVITES_SCHEMA)
-def invites_view(user: User,
-                 used: bool,
-                 include_dead: bool) -> flask.Response:
+def invites_view(user: User, used: bool, include_dead: bool) -> flask.Response:
     """
     View sent invites. If a user_id is specified, only invites sent by that user
     will be returned, otherwise only your invites are returned. If requester has
@@ -92,13 +99,13 @@ def invites_view(user: User,
     :statuscode 200: View successful
     :statuscode 403: User does not have permission to view user's invites
     """
-    invites = Invite.from_inviter(user.id, include_dead=include_dead, used=used)
+    invites = Invite.from_inviter(
+        user.id, include_dead=include_dead, used=used
+    )
     return flask.jsonify(invites)
 
 
-USER_INVITE_SCHEMA = Schema({
-    'email': Email(),
-    }, required=True)
+USER_INVITE_SCHEMA = Schema({'email': Email()}, required=True)
 
 
 @bp.route('/invites', methods=['POST'])
@@ -139,14 +146,14 @@ def invite_user(email: str):
     """
     if not app.config['REQUIRE_INVITE_CODE']:
         raise APIException(
-            'An invite code is not required to register, so invites have been disabled.')
+            'An invite code is not required to register, so invites have been disabled.'
+        )
     if not flask.g.user.invites:
         raise APIException('You do not have an invite to send.')
 
     invite = Invite.new(
-        inviter_id=flask.g.user.id,
-        email=email,
-        ip=flask.request.remote_addr)
+        inviter_id=flask.g.user.id, email=email, ip=flask.request.remote_addr
+    )
     flask.g.user.invites -= 1
     db.session.commit()
     return flask.jsonify(invite)
@@ -186,7 +193,9 @@ def revoke_invite(code: str) -> flask.Response:
     :statuscode 403: Unauthorized to revoke invites
     :statuscode 404: Invite does not exist or user cannot view invite
     """
-    invite = Invite.from_pk(code, _404=True, asrt=InvitePermissions.REVOKE_OTHERS)
+    invite = Invite.from_pk(
+        code, _404=True, asrt=InvitePermissions.REVOKE_OTHERS
+    )
     invite.expired = True
     invite.inviter.invites += 1
     db.session.commit()

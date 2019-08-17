@@ -18,4 +18,5 @@ def cached_property(func: Callable) -> property:
         except KeyError:
             rv = self._property_cache[func.__name__] = func(self)
         return rv
+
     return property(wrapper)

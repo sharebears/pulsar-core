@@ -42,22 +42,28 @@ def get_user(user_id: int) -> flask.Response:
     return flask.jsonify(User.from_pk(user_id, _404=True))
 
 
-CREATE_USER_SCHEMA = Schema({
-    'username': ValUsername,
-    'password': Match(PASSWORD_REGEX, msg=(
-        'Password must be between 12 and 512 characters and contain at least 1 letter, '
-        '1 number, and 1 special character')),
-    'email': Email(),
-    Optional('code', default=None): Any(str, None),
-}, required=True)
+CREATE_USER_SCHEMA = Schema(
+    {
+        'username': ValUsername,
+        'password': Match(
+            PASSWORD_REGEX,
+            msg=(
+                'Password must be between 12 and 512 characters and contain at least 1 letter, '
+                '1 number, and 1 special character'
+            ),
+        ),
+        'email': Email(),
+        Optional('code', default=None): Any(str, None),
+    },
+    required=True,
+)
 
 
 @bp.route('/users', methods=['POST'])
 @validate_data(CREATE_USER_SCHEMA)
-def register(username: str,
-             password: str,
-             email: str,
-             code: str = None) -> flask.Response:
+def register(
+    username: str, password: str, email: str, code: str = None
+) -> flask.Response:
     """
     Creates a user account with the provided credentials.
     An invite code may be required for registration.
@@ -104,8 +110,5 @@ def register(username: str,
     :statuscode 400: registration unsuccessful
     """
     ValInviteCode(code)
-    user = User.new(
-        username=username,
-        password=password,
-        email=email)
+    user = User.new(username=username, password=password, email=email)
     return flask.jsonify({'username': user.username})

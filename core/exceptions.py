@@ -13,22 +13,22 @@ class APIException(Exception):
 class _500Exception(APIException):
     def __init__(self) -> None:
         super().__init__(
-            message='Something went wrong with your request.',
-            status_code=500)
+            message='Something went wrong with your request.', status_code=500
+        )
 
 
 class _405Exception(APIException):
     def __init__(self) -> None:
         super().__init__(
-            message='Method not allowed for this resource.',
-            status_code=405)
+            message='Method not allowed for this resource.', status_code=405
+        )
 
 
 class _404Exception(APIException):
     def __init__(self, resource: str = 'Resource') -> None:
         super().__init__(
-            message=f'{resource} does not exist.',
-            status_code=404)
+            message=f'{resource} does not exist.', status_code=404
+        )
 
 
 class _403Exception(APIException):
@@ -38,12 +38,14 @@ class _403Exception(APIException):
     the masquerade param to True.
     """
 
-    def __init__(self,
-                 message: str = None,
-                 masquerade: bool = False) -> None:
+    def __init__(self, message: str = None, masquerade: bool = False) -> None:
         super().__init__(
-            message=(message or 'You do not have permission to access this resource.'),
-            status_code=403)
+            message=(
+                message
+                or 'You do not have permission to access this resource.'
+            ),
+            status_code=403,
+        )
 
         if masquerade:
             self.status_code = 404
@@ -53,8 +55,8 @@ class _403Exception(APIException):
 class _401Exception(APIException):
     def __init__(self, message: str = None) -> None:
         super().__init__(
-            message=(message or 'Invalid authorization.'),
-            status_code=401)
+            message=(message or 'Invalid authorization.'), status_code=401
+        )
 
 
 class _312Exception(APIException):
@@ -63,4 +65,5 @@ class _312Exception(APIException):
     def __init__(self, lock: bool = False) -> None:
         super().__init__(
             message=f'Your account has been {"locked" if lock else "disabled"}.',
-            status_code=403)
+            status_code=403,
+        )

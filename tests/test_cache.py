@@ -112,11 +112,7 @@ def test_cache_get_dict(app, client):
     cache.set('key_1', 1)
     cache.set('key_2', 2)
     data = cache.get_dict(*('keY_1', 'kEy_2', 'key_3'))
-    assert data == {
-        'key_1': 1,
-        'key_2': 2,
-        'key_3': None,
-    }
+    assert data == {'key_1': 1, 'key_2': 2, 'key_3': None}
     with app.test_request_context('/test'):
         assert 'key_1' in flask.g.cache_keys['get_dict']
         assert 'key_2' in flask.g.cache_keys['get_dict']
@@ -154,6 +150,7 @@ def test_cache_delete_many(app, client):
 
 def test_cache_sets_globals(app, authed_client):
     """Modifying cache values should add them to the global variables."""
+
     @app.route('/test_route')
     def test_route():
         cache.set('key3', 1)

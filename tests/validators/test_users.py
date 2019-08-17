@@ -6,16 +6,16 @@ from core.validators import ValInviteCode, ValUsername
 
 
 @pytest.mark.parametrize(
-    'username', [
-        123, '1234567890abcdefghijklmnoqrstuvwxyzabcdef', None
-    ])
+    'username', [123, '1234567890abcdefghijklmnoqrstuvwxyzabcdef', None]
+)
 def test_username_validation_fail(app, client, username):
     with pytest.raises(Invalid) as e:
         ValUsername(username)
     assert str(e.value) == (
         'usernames must start with an alphanumeric character; can only contain '
         'alphanumeric characters, underscores, hyphens, and periods; and be '
-        '32 characters or less')
+        '32 characters or less'
+    )
 
 
 def test_invite_code_validation_fail(app, client):

@@ -10,8 +10,7 @@ app = flask.current_app
 
 @bp.route('/permissions', methods=['GET'])
 @require_permission('permissions_modify')
-def view_permissions(user_id: int = None,
-                     all: bool = False) -> flask.Response:
+def view_permissions(user_id: int = None, all: bool = False) -> flask.Response:
     """
     View all permissions available. Requires the ``permissions_modify`` permission.
 

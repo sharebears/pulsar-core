@@ -17,6 +17,7 @@ class ClassSerializer(Serializer):
     add an attribute to the userclass not present in the ``ClassMixin``, in which
     case a new serializer should be assigned to the userclass model.
     """
+
     id = Attribute()
     name = Attribute()
     permissions = Attribute(permission='userclasses_modify')
@@ -27,15 +28,22 @@ class ClassMixin(SinglePKMixin):
 
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(24), nullable=False)
-    permissions: List[str] = db.Column(ARRAY(db.String(36)), nullable=False, server_default='{}')
+    permissions: List[str] = db.Column(
+        ARRAY(db.String(36)), nullable=False, server_default='{}'
+    )
 
     @declared_attr
     def __table_args__(cls):
-        return db.Index(f'ix_{cls.__tablename__}_name', func.lower(cls.name), unique=True),
+        return (
+            db.Index(
+                f'ix_{cls.__tablename__}_name',
+                func.lower(cls.name),
+                unique=True,
+            ),
+        )
 
     @classmethod
-    def from_name(cls: Type[UC],
-                  name: str) -> Optional[UC]:
+    def from_name(cls: Type[UC], name: str) -> Optional[UC]:
         """
         Get a userclass object from its name.
 
@@ -46,9 +54,7 @@ class ClassMixin(SinglePKMixin):
         return cls.query.filter(func.lower(cls.name) == name).scalar()
 
     @classmethod
-    def new(cls: Type[UC],
-            name: str,
-            permissions: List[str] = None) -> UC:
+    def new(cls: Type[UC], name: str, permissions: List[str] = None) -> UC:
         """
         Create a new userclass.
 
@@ -57,10 +63,10 @@ class ClassMixin(SinglePKMixin):
         :return:            The newly created userclass
         """
         if cls.from_name(name):
-            raise APIException(f'Another {cls.__name__} already has the name {name}.')
-        return super()._new(
-            name=name,
-            permissions=permissions or [])
+            raise APIException(
+                f'Another {cls.__name__} already has the name {name}.'
+            )
+        return super()._new(name=name, permissions=permissions or [])
 
     @classmethod
     def get_all(cls: Type[UC]) -> List[UC]:

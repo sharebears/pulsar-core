@@ -25,15 +25,19 @@ def ValUsername(username: str) -> str:
     :raises Invalid: If the username does not meet length requirements or is
                      already used by another user
     """
-    if (not isinstance(username, str)
-            or not re.match(USERNAME_REGEX, username)
-            or len(username) > 32
-            or username == '0'  # No 0 or 1 for Gazelle compatibility.
-            or username == '1'):
-        raise Invalid('usernames must start with an alphanumeric '
-                      'character; can only contain alphanumeric characters, '
-                      'underscores, hyphens, and periods; and be 32 characters '
-                      'or less')
+    if (
+        not isinstance(username, str)
+        or not re.match(USERNAME_REGEX, username)
+        or len(username) > 32
+        or username == '0'  # No 0 or 1 for Gazelle compatibility.
+        or username == '1'
+    ):
+        raise Invalid(
+            'usernames must start with an alphanumeric '
+            'character; can only contain alphanumeric characters, '
+            'underscores, hyphens, and periods; and be 32 characters '
+            'or less'
+        )
 
     if User.from_username(username):
         raise Invalid(f'another user already has the username {username}')
@@ -58,7 +62,9 @@ def ValInviteCode(code: Optional[str]) -> None:
 
     invite = Invite.from_pk(code)
     if invite and not invite.invitee_id:
-        time_since_usage = datetime.utcnow().replace(tzinfo=pytz.utc) - invite.time_sent
+        time_since_usage = (
+            datetime.utcnow().replace(tzinfo=pytz.utc) - invite.time_sent
+        )
         if time_since_usage.total_seconds() < app.config['INVITE_LIFETIME']:
             return
 

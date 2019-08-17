@@ -1,5 +1,6 @@
 lint:
 	isort -rc .
+	black -S -t py37 -l 79 .
 
 tests:
 	flake8

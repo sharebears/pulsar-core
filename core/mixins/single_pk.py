@@ -25,14 +25,16 @@ class SinglePKMixin(PKBase):
     """
 
     @classmethod
-    def from_pk(cls: Type[SPK],
-                pk: Union[str, int, None],
-                *,
-                include_dead: bool = False,
-                _404: bool = False,
-                error: bool = False,
-                asrt: Union[str, Enum] = None) -> Optional[SPK]:
-                # TODO fix response type, this is why we are static optional.
+    def from_pk(
+        cls: Type[SPK],
+        pk: Union[str, int, None],
+        *,
+        include_dead: bool = False,
+        _404: bool = False,
+        error: bool = False,
+        asrt: Union[str, Enum] = None,
+    ) -> Optional[SPK]:
+        # TODO fix response type, this is why we are static optional.
         """
         Default classmethod constructor to get an object by its PK ID.
         If the object has a deleted/revoked/expired column, it will compare a
@@ -58,23 +60,32 @@ class SinglePKMixin(PKBase):
         if pk:
             model: SPK = cls.from_cache(
                 key=cls.create_cache_key(pk),
-                query=cls.query.filter(getattr(cls, cls.get_primary_key()) == pk))
-            if (model is not None
-                    and model.can_access(asrt, error)
-                    and (include_dead
-                         or not cls.__deletion_attr__
-                         or not getattr(model, cls.__deletion_attr__, False))):
+                query=cls.query.filter(
+                    getattr(cls, cls.get_primary_key()) == pk
+                ),
+            )
+            if (
+                model is not None
+                and model.can_access(asrt, error)
+                and (
+                    include_dead
+                    or not cls.__deletion_attr__
+                    or not getattr(model, cls.__deletion_attr__, False)
+                )
+            ):
                 return model
         if _404:
             raise _404Exception(f'{cls.__name__} {pk}')
         return None
 
     @classmethod
-    def from_query(cls: Type[SPK],
-                   *,
-                   key: str = None,
-                   filter: BinaryExpression = None,
-                   order: BinaryExpression = None) -> Optional[SPK]:
+    def from_query(
+        cls: Type[SPK],
+        *,
+        key: str = None,
+        filter: BinaryExpression = None,
+        order: BinaryExpression = None,
+    ) -> Optional[SPK]:
         """
         Function to get a single object from the database (via ``limit(1)``, ``query.first()``).
         Getting the object via the provided cache key will be attempted first; if
@@ -104,9 +115,7 @@ class SinglePKMixin(PKBase):
         return cls.from_pk(cls_pk)
 
     @classmethod
-    def is_valid(cls,
-                 pk: Union[int, str, None],
-                 error: bool = False) -> bool:
+    def is_valid(cls, pk: Union[int, str, None], error: bool = False) -> bool:
         """
         Check whether or not the object exists and isn't deleted.
 
@@ -117,7 +126,9 @@ class SinglePKMixin(PKBase):
         """
         obj = cls.from_pk(pk)
         if error and not obj:
-            raise APIException(f'Invalid {cls.__name__} {cls.get_primary_key()}.')
+            raise APIException(
+                f'Invalid {cls.__name__} {cls.get_primary_key()}.'
+            )
         return obj is not None
 
     @classmethod
@@ -136,13 +147,17 @@ class SinglePKMixin(PKBase):
             except KeyError:
                 pass
         raise NameError(  # pramga: no cover
-            'The cache key is undefined or improperly defined in this model.')
+            'The cache key is undefined or improperly defined in this model.'
+        )
 
     @classmethod
-    def update_many(cls, *,
-                    pks: List[Union[str, int]],
-                    update: Dict[str, Any],
-                    sychronize_session: bool = False) -> None:
+    def update_many(
+        cls,
+        *,
+        pks: List[Union[str, int]],
+        update: Dict[str, Any],
+        sychronize_session: bool = False,
+    ) -> None:
         """
         Construct and execute a query affecting all objects with PKs in the
         list of PKs passed to this function. This is only meant to be used for
@@ -156,14 +171,14 @@ class SinglePKMixin(PKBase):
         """
         if pks:
             db.session.query(cls).filter(
-                    getattr(cls, cls.get_primary_key()).in_(pks)
-                ).update(update, synchronize_session=sychronize_session)
+                getattr(cls, cls.get_primary_key()).in_(pks)
+            ).update(update, synchronize_session=sychronize_session)
             db.session.commit()
             cache.delete_many(*(cls.create_cache_key(pk) for pk in pks))
 
-    def can_access(self,
-                   permission: Union[str, Enum] = None,
-                   error: bool = False) -> bool:
+    def can_access(
+        self, permission: Union[str, Enum] = None, error: bool = False
+    ) -> bool:
         """
         Determines whether or not the requesting user can access the following resource.
         If no permission is specified, any user can access the resource. If a permission is
@@ -173,9 +188,11 @@ class SinglePKMixin(PKBase):
         :param permission: Permission to restrict access to
         :return:           Whether or not the requesting user can access the resource
         """
-        access = (permission is None
-                  or self.belongs_to_user()
-                  or flask.g.user.has_permission(permission))
+        access = (
+            permission is None
+            or self.belongs_to_user()
+            or flask.g.user.has_permission(permission)
+        )
         if error and not access:
             raise _403Exception
         return access
@@ -189,7 +206,9 @@ class SinglePKMixin(PKBase):
 
         :return: Whether or not the object "belongs" to the user
         """
-        return flask.g.user is not None and flask.g.user.id == getattr(self, 'user_id', False)
+        return flask.g.user is not None and flask.g.user.id == getattr(
+            self, 'user_id', False
+        )
 
     @classmethod
     def get_primary_key(cls) -> str:

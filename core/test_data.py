@@ -2,8 +2,11 @@ from werkzeug.security import generate_password_hash
 
 from core import db
 from core.mixins import TestDataPopulator
-from core.permissions.models import (SecondaryClass, UserClass,
-                                     secondary_class_assoc_table)
+from core.permissions.models import (
+    SecondaryClass,
+    UserClass,
+    secondary_class_assoc_table,
+)
 
 HASH_1 = generate_password_hash('12345')
 HASH_2 = generate_password_hash('abcdefg')
@@ -21,22 +24,21 @@ HASHED_CODE_4 = generate_password_hash(CODE_4)
 
 
 class CorePopulator(TestDataPopulator):
-
     @classmethod
     def populate(cls):
         UserClass.new(name='User')
-        UserClass.new(name='Power User', permissions=[
-            'permissions_modify',
-            'users_edit_settings',
-            ])
+        UserClass.new(
+            name='Power User',
+            permissions=['permissions_modify', 'users_edit_settings'],
+        )
         UserClass.new(name='Elite')
         UserClass.new(name='Torrent Masturbaiter')
         UserClass.new(name='Staff')
         UserClass.new(name='Administrator')
         SecondaryClass.new(name='FLS')
-        SecondaryClass.new(name='Beans Team', permissions=[
-            'users_edit_settings',
-            ])
+        SecondaryClass.new(
+            name='Beans Team', permissions=['users_edit_settings']
+        )
         SecondaryClass.new(name='Progressive Insurance')
         SecondaryClass.new(name='Jake from State Farom')
 
@@ -48,24 +50,30 @@ class CorePopulator(TestDataPopulator):
             ('user_three', '{HASH_3}', 'user_three@puls.ar', 0, NULL, 1),
             ('user_four', '{HASH_1}', 'user_four@puls.ar', 2, 2, 1),
             ('user_five', '{HASH_1}', 'user_four@puls.ar', 1, 4, 1)
-            """)
+            """
+        )
         db.engine.execute(
             f"""INSERT INTO api_keys (user_id, hash, keyhashsalt, revoked, permissions) VALUES
             (1, 'abcdefghij', '{HASHED_CODE_1}', 'f',
              '{{"sample_permission", "sample_2_permission", "sample_3_permission"}}'),
             (1, 'cdefghijkl', '{HASHED_CODE_3}', 'f', '{{}}'),
             (2, 'bcdefghijk', '{HASHED_CODE_3}', 'f', '{{}}'),
-            (2, '1234567890', '{HASHED_CODE_2}', 't', '{{}}')""")
+            (2, '1234567890', '{HASHED_CODE_2}', 't', '{{}}')"""
+        )
         db.engine.execute(
             f"""INSERT INTO invites (inviter_id, invitee_id, email, code, expired) VALUES
             (1, NULL, 'bright@puls.ar', '{CODE_1}', 'f'),
             (1, 2, 'bright@quas.ar', '{CODE_2}', 't'),
             (2, NULL, 'bright@puls.ar', '{CODE_3}', 'f'),
             (1, NULL, 'bright@quas.ar', '{CODE_4}', 't')
-            """)
+            """
+        )
 
         db.session.execute(
-            secondary_class_assoc_table.insert().values(user_id=1, secondary_class_id=1))
+            secondary_class_assoc_table.insert().values(
+                user_id=1, secondary_class_id=1
+            )
+        )
         db.session.commit()
 
     @classmethod
@@ -81,4 +89,6 @@ class CorePopulator(TestDataPopulator):
         db.engine.execute("DELETE FROM secondary_classes")
         db.engine.execute("ALTER SEQUENCE users_id_seq RESTART WITH 1")
         db.engine.execute("ALTER SEQUENCE user_classes_id_seq RESTART WITH 1")
-        db.engine.execute("ALTER SEQUENCE secondary_classes_id_seq RESTART WITH 1")
+        db.engine.execute(
+            "ALTER SEQUENCE secondary_classes_id_seq RESTART WITH 1"
+        )

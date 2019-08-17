@@ -1,6 +1,13 @@
 import pytest
 
-from conftest import CODE_1, CODE_2, CODE_3, CODE_4, add_permissions, check_dictionary
+from conftest import (
+    CODE_1,
+    CODE_2,
+    CODE_3,
+    CODE_4,
+    add_permissions,
+    check_dictionary,
+)
 from core import NewJSONEncoder, cache
 from core.users.models import Invite
 
@@ -17,18 +24,24 @@ def test_get_invite(app, client):
 
 
 @pytest.mark.parametrize(
-    'inviter_id, include_dead, used, invites', [
+    'inviter_id, include_dead, used, invites',
+    [
         (1, False, False, {CODE_1}),
         (1, True, False, {CODE_1, CODE_2, CODE_4}),
         (1, False, True, {CODE_2}),
         (1, True, True, {CODE_2}),
-    ])
-def test_invites_from_inviter(app, client, inviter_id, include_dead, used, invites):
+    ],
+)
+def test_invites_from_inviter(
+    app, client, inviter_id, include_dead, used, invites
+):
     """Invites by the inviter and the available parameters."""
-    assert invites == set(i.code for i in Invite.from_inviter(
-        inviter_id=inviter_id,
-        include_dead=include_dead,
-        used=used))
+    assert invites == set(
+        i.code
+        for i in Invite.from_inviter(
+            inviter_id=inviter_id, include_dead=include_dead, used=used
+        )
+    )
 
 
 def test_invites_from_inviter_cached(app, client):
@@ -49,7 +62,9 @@ def test_invite_creation_collision(app, monkeypatch):
     """
     global HEXES
     HEXES = iter([CODE_1, '098765432109876543211234'])
-    monkeypatch.setattr('core.users.models.secrets.token_urlsafe', hex_generator)
+    monkeypatch.setattr(
+        'core.users.models.secrets.token_urlsafe', hex_generator
+    )
     with app.app_context():
         invite = Invite.new(2, 'user_three@puls.ar', '127.0.0.2')
         assert invite.code != CODE_1
@@ -73,11 +88,15 @@ def test_serialize_no_perms(app, authed_client):
 def test_serialize_self(app, authed_client):
     invite = Invite.from_pk(CODE_1)
     data = NewJSONEncoder().default(invite)
-    check_dictionary(data, {
-        'code': CODE_1,
-        'email': 'bright@puls.ar',
-        'expired': False,
-        'invitee': None})
+    check_dictionary(
+        data,
+        {
+            'code': CODE_1,
+            'email': 'bright@puls.ar',
+            'expired': False,
+            'invitee': None,
+        },
+    )
     assert isinstance(data['time_sent'], int)
 
 
@@ -85,12 +104,16 @@ def test_serialize_detailed(app, authed_client):
     add_permissions(app, 'invites_view_others')
     invite = Invite.from_pk(CODE_1)
     data = NewJSONEncoder().default(invite)
-    check_dictionary(data, {
-        'code': CODE_1,
-        'email': 'bright@puls.ar',
-        'expired': False,
-        'invitee': None,
-        'from_ip': '0.0.0.0'})
+    check_dictionary(
+        data,
+        {
+            'code': CODE_1,
+            'email': 'bright@puls.ar',
+            'expired': False,
+            'invitee': None,
+            'from_ip': '0.0.0.0',
+        },
+    )
     assert isinstance(data['time_sent'], int)
     assert isinstance(data['inviter'], dict)
 
@@ -99,11 +122,15 @@ def test_serialize_nested(app, authed_client):
     add_permissions(app, 'invites_view_others')
     invite = Invite.from_pk(CODE_1)
     data = NewJSONEncoder()._objects_to_dict(invite.serialize(nested=True))
-    check_dictionary(data, {
-        'code': CODE_1,
-        'email': 'bright@puls.ar',
-        'expired': False,
-        'invitee': None,
-        'inviter': None,
-        'from_ip': '0.0.0.0'})
+    check_dictionary(
+        data,
+        {
+            'code': CODE_1,
+            'email': 'bright@puls.ar',
+            'expired': False,
+            'invitee': None,
+            'inviter': None,
+            'from_ip': '0.0.0.0',
+        },
+    )
     assert isinstance(data['time_sent'], int)

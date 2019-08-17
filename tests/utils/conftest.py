@@ -10,4 +10,5 @@ def populate_db(client):
         (1, 'sample_perm_one'),
         (1, 'sample_perm_two'),
         (1, 'sample_perm_three')
-        """)
+        """
+    )

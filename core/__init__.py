@@ -3,8 +3,15 @@ from flask_sqlalchemy import SQLAlchemy, event
 from werkzeug import find_modules, import_string
 
 from core.cache import cache, clear_cache_dirty
-from core.exceptions import (APIException, _312Exception, _401Exception,  # noqa
-                             _403Exception, _404Exception, _405Exception, _500Exception)
+from core.exceptions import _401Exception  # noqa
+from core.exceptions import (
+    APIException,
+    _312Exception,
+    _403Exception,
+    _404Exception,
+    _405Exception,
+    _500Exception,
+)
 from core.serializer import NewJSONEncoder
 
 db = SQLAlchemy()
@@ -19,12 +26,10 @@ class Config:
         'view_staff_pm',
         'send_staff_pm',
         'resolve_staff_pm',
-        }
+    }
     # These are permissions which can be manipulated by users with basic
     # user editing capibilities that do not have full permissioning powers.
-    BASIC_PERMISSIONS = [
-        'invites_send',
-    ]
+    BASIC_PERMISSIONS = ['invites_send']
 
 
 def init_app(app):
@@ -60,8 +65,9 @@ def register_blueprints(app: flask.Flask) -> None:
 
 
 def register_error_handlers(app: flask.Flask) -> None:
-    app.register_error_handler(APIException, lambda err: (
-        flask.jsonify(err.message), err.status_code))
+    app.register_error_handler(
+        APIException, lambda err: (flask.jsonify(err.message), err.status_code)
+    )
     app.register_error_handler(404, _404_handler)
     app.register_error_handler(405, _405_handler)
     app.register_error_handler(500, _500_handler)

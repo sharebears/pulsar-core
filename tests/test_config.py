@@ -13,14 +13,14 @@ REDIS_PARAMS = {
     'db': None,
     'key_prefix': 'pulsar_test',
     'default_timeout': 3600 * 24 * 7,  # 1 week
-    }
+}
 
 REQUIRE_INVITE_CODE = None
 LOCKED_ACCOUNT_PERMISSIONS = {
     'view_staff_pm',
     'send_staff_pm',
     'resolve_staff_pm',
-    }
+}
 INVITE_LIFETIME = 60 * 60 * 24 * 3  # 3 days
 IMPERMANENT_API_KEY_LIFETIME = 60 * 30  # 30 minutes
 

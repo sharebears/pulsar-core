@@ -6,24 +6,24 @@ from core.users.models import User
 
 
 @pytest.mark.parametrize(
-    'status_code, status', [
+    'status_code, status',
+    [
         (200, 'success'),
         (203, 'success'),
         (400, 'failed'),
         (404, 'failed'),
         (500, 'failed'),
-    ])
+    ],
+)
 def test_status_string(app, authed_client, status_code, status):
     """The status string should populate itself based on status code."""
+
     @app.route('/test_endpoint')
     def test_endpoint():
         return flask.jsonify('test'), status_code
 
     response = authed_client.get('/test_endpoint')
-    assert response.get_json() == {
-        'response': 'test',
-        'status': status,
-    }
+    assert response.get_json() == {'response': 'test', 'status': status}
 
 
 def test_cache_keys(app, authed_client):
@@ -50,6 +50,7 @@ def test_cache_keys_no_perms(app, authed_client):
     Cache keys should not be included in the response if user does not have
     site_manage_cache_keys permission.
     """
+
     @app.route('/test_endpoint')
     def test_endpoint():
         return flask.jsonify('test')

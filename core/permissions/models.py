@@ -30,35 +30,52 @@ class SecondaryClass(db.Model, ClassMixin):
         return cls.get_many(
             key=cls.__cache_key_of_user__.format(id=user_id),
             expr_override=select(
-                [secondary_class_assoc_table.c.secondary_class_id]).where(
-                    secondary_class_assoc_table.c.user_id == user_id))
+                [secondary_class_assoc_table.c.secondary_class_id]
+            ).where(secondary_class_assoc_table.c.user_id == user_id),
+        )
 
     def has_users(self) -> bool:
-        return bool(db.session.execute(
-            select([secondary_class_assoc_table.c.user_id]).where(
-                secondary_class_assoc_table.c.secondary_class_id == self.id).limit(1)))
+        return bool(
+            db.session.execute(
+                select([secondary_class_assoc_table.c.user_id])
+                .where(
+                    secondary_class_assoc_table.c.secondary_class_id == self.id
+                )
+                .limit(1)
+            )
+        )
 
 
 secondary_class_assoc_table = db.Table(
-    'secondary_class_assoc', db.metadata,
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), nullable=False),
-    db.Column('secondary_class_id', db.Integer, db.ForeignKey('secondary_classes.id'),
-              nullable=False))
+    'secondary_class_assoc',
+    db.metadata,
+    db.Column(
+        'user_id', db.Integer, db.ForeignKey('users.id'), nullable=False
+    ),
+    db.Column(
+        'secondary_class_id',
+        db.Integer,
+        db.ForeignKey('secondary_classes.id'),
+        nullable=False,
+    ),
+)
 
 
 class UserPermission(db.Model, MultiPKMixin):
     __tablename__ = 'users_permissions'
 
-    user_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    user_id: int = db.Column(
+        db.Integer, db.ForeignKey('users.id'), primary_key=True
+    )
     permission: str = db.Column(db.String(36), primary_key=True)
-    granted: bool = db.Column(db.Boolean, nullable=False, index=True, server_default='t')
+    granted: bool = db.Column(
+        db.Boolean, nullable=False, index=True, server_default='t'
+    )
 
     all_permissions: List[str] = []
 
     @classmethod
-    def from_user(cls,
-                  user_id: int,
-                  prefix: str = None) -> Dict[str, bool]:
+    def from_user(cls, user_id: int, prefix: str = None) -> Dict[str, bool]:
         """
         Gets a dict of all custom permissions assigned to a user.
 
@@ -66,6 +83,10 @@ class UserPermission(db.Model, MultiPKMixin):
         :return:        Dict of permissions with the name as the
                         key and the ``granted`` value as the value
         """
-        return {p.permission: p.granted for p in cls.query.filter(  # type: ignore
-                    cls.user_id == user_id
-                ).all() if not prefix or p.permission.startswith(prefix)}
+        return {
+            p.permission: p.granted
+            for p in cls.query.filter(  # type: ignore
+                cls.user_id == user_id
+            ).all()
+            if not prefix or p.permission.startswith(prefix)
+        }

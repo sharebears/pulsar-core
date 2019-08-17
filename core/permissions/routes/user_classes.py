@@ -14,16 +14,15 @@ from . import bp
 
 app = flask.current_app
 
-VIEW_USER_CLASS_SCHEMA = Schema({
-    'secondary': BoolGET,
-    })
+VIEW_USER_CLASS_SCHEMA = Schema({'secondary': BoolGET})
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['GET'])
 @require_permission(UserclassPermissions.MODIFY)
 @validate_data(VIEW_USER_CLASS_SCHEMA)
-def view_user_class(user_class_id: int,
-                    secondary: bool = False) -> flask.Response:
+def view_user_class(
+    user_class_id: int, secondary: bool = False
+) -> flask.Response:
     """
     View an available user class and its associated permission sets.
     Requires the ``userclasses_list`` permission.
@@ -75,25 +74,30 @@ def view_multiple_user_classes(secondary: bool = False) -> flask.Response:
     :statuscode 200: View successful
     :statuscode 404: User class does not exist
     """
-    return flask.jsonify({  # type: ignore
-        'user_classes': UserClass.get_all(),
-        'secondary_classes': SecondaryClass.get_all(),
-        })
+    return flask.jsonify(
+        {  # type: ignore
+            'user_classes': UserClass.get_all(),
+            'secondary_classes': SecondaryClass.get_all(),
+        }
+    )
 
 
-CREATE_USER_CLASS_SCHEMA = Schema({
-    'name': All(str, Length(max=24)),
-    'permissions': PermissionsList,
-    Optional('secondary', default=False): BoolGET,
-    }, required=True)
+CREATE_USER_CLASS_SCHEMA = Schema(
+    {
+        'name': All(str, Length(max=24)),
+        'permissions': PermissionsList,
+        Optional('secondary', default=False): BoolGET,
+    },
+    required=True,
+)
 
 
 @bp.route('/user_classes', methods=['POST'])
 @require_permission(UserclassPermissions.MODIFY)
 @validate_data(CREATE_USER_CLASS_SCHEMA)
-def create_user_class(name: str,
-                      permissions: List[str],
-                      secondary: bool = False) -> flask.Response:
+def create_user_class(
+    name: str, permissions: List[str], secondary: bool = False
+) -> flask.Response:
     """
     Create a new user class. Requires the ``userclasses_modify`` permission.
 
@@ -135,9 +139,7 @@ def create_user_class(name: str,
     :statuscode 400: User class name taken or invalid permissions
     """
     u_class: Any = SecondaryClass if secondary else UserClass
-    return flask.jsonify(u_class.new(
-        name=name,
-        permissions=permissions))
+    return flask.jsonify(u_class.new(name=name, permissions=permissions))
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['DELETE'])
@@ -177,13 +179,19 @@ def delete_user_class(user_class_id: int) -> flask.Response:
     """
     # Determine secondary here because it's a query arg
     request_args = flask.request.args.to_dict()
-    secondary = BoolGET(request_args['secondary']) if 'secondary' in request_args else False
+    secondary = (
+        BoolGET(request_args['secondary'])
+        if 'secondary' in request_args
+        else False
+    )
     u_class: Any = SecondaryClass if secondary else UserClass
 
     user_class = u_class.from_pk(user_class_id, _404=True)
     if user_class.has_users():
-        raise APIException(f'You cannot delete a {u_class.__name__} '
-                           'while users are assigned to it.')
+        raise APIException(
+            f'You cannot delete a {u_class.__name__} '
+            'while users are assigned to it.'
+        )
 
     response = f'{u_class.__name__} {user_class.name} has been deleted.'
     db.session.delete(user_class)
@@ -191,18 +199,21 @@ def delete_user_class(user_class_id: int) -> flask.Response:
     return flask.jsonify(response)
 
 
-MODIFY_USER_CLASS_SCHEMA = Schema({
-    'permissions': PermissionsDict(),
-    Optional('secondary', default=False): BoolGET,
-    }, required=True)
+MODIFY_USER_CLASS_SCHEMA = Schema(
+    {
+        'permissions': PermissionsDict(),
+        Optional('secondary', default=False): BoolGET,
+    },
+    required=True,
+)
 
 
 @bp.route('/user_classes/<int:user_class_id>', methods=['PUT'])
 @require_permission(UserclassPermissions.MODIFY)
 @validate_data(MODIFY_USER_CLASS_SCHEMA)
-def modify_user_class(user_class_id: int,
-                      permissions: Dict[str, bool],
-                      secondary: bool = False) -> flask.Response:
+def modify_user_class(
+    user_class_id: int, permissions: Dict[str, bool], secondary: bool = False
+) -> flask.Response:
     """
     Modifies permissions for an existing user class.
     Requires the ``userclasses_modify`` permission.
@@ -251,12 +262,14 @@ def modify_user_class(user_class_id: int,
     for perm in to_add:
         if perm in uc_perms:
             raise APIException(
-                f'{u_class.__name__} {user_class.name} already has the permission {perm}.')
+                f'{u_class.__name__} {user_class.name} already has the permission {perm}.'
+            )
         uc_perms.append(perm)
     for perm in to_delete:
         if perm not in uc_perms:
             raise APIException(
-                f'{u_class.__name__} {user_class.name} does not have the permission {perm}.')
+                f'{u_class.__name__} {user_class.name} does not have the permission {perm}.'
+            )
         uc_perms.remove(perm)
 
     # Permissions don't update if list reference doesn't change.

@@ -28,10 +28,14 @@ def wrap_response(response: flask.Response) -> None:
     response_data = {
         'status': 'success' if response.status_code // 100 == 2 else 'failed',
         'response': data,
-        }
+    }
 
-    if flask.g.user and flask.g.user.has_permission(SitePermissions.MANAGE_CACHE_KEYS):
+    if flask.g.user and flask.g.user.has_permission(
+        SitePermissions.MANAGE_CACHE_KEYS
+    ):
         # We can't encode sets to JSON.
-        response_data['cache_keys'] = {k: list(v) for k, v in flask.g.cache_keys.items()}
+        response_data['cache_keys'] = {
+            k: list(v) for k, v in flask.g.cache_keys.items()
+        }
 
     response.set_data(json.dumps(response_data))

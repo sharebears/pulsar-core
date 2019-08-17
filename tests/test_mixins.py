@@ -1,4 +1,3 @@
-
 import pytest
 
 from core.mixins import SinglePKMixin
@@ -20,18 +19,30 @@ def test_belongs_to_user_fails_unauthed(app, client):
         assert not mixin.belongs_to_user()
 
 
-def test_delet_unavailable_property_from_cache_doesnt_blow_up(app, authed_client):
+def test_delet_unavailable_property_from_cache_doesnt_blow_up(
+    app, authed_client
+):
     user = SinglePKMixin()
     user.del_property_cache('notakey')
 
 
 @pytest.mark.parametrize(
-    'data, result', [
+    'data, result',
+    [
         ('not-a-dict', False),
         ({'id': 1, 'name': 'User'}, False),
         ({'id': 1, 'name': 'User', 'permissions': ['a-perm']}, True),
-        ({'id': 1, 'name': 'User', 'permissions': ['a-perm'], 'has_users': False}, False),
-     ])
+        (
+            {
+                'id': 1,
+                'name': 'User',
+                'permissions': ['a-perm'],
+                'has_users': False,
+            },
+            False,
+        ),
+    ],
+)
 def test_is_valid_data(app, client, data, result):
     """Make sure the post-cache fetch function for valid data works."""
     assert UserClass._valid_data(data) is result

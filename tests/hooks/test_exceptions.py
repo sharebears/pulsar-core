@@ -22,6 +22,7 @@ def test_500_exception(app, client):
 
 def test_405_exception(app, client):
     """405 exception should return response in JSON."""
+
     @app.route('/exception_causer', methods=['POST'])
     def exception_causer():
         return 'never hit this'

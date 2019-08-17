@@ -49,22 +49,26 @@ def view_notifications(user: User):
     return flask.jsonify(Notification.get_all_unread(user.id))
 
 
-VIEW_NOTIFICATION_SCHEMA = Schema({
-    'page': All(int, Range(min=0, max=2147483648)),
-    'limit': All(int, In((25, 50, 100))),
-    'include_read': BoolGET
-    })
+VIEW_NOTIFICATION_SCHEMA = Schema(
+    {
+        'page': All(int, Range(min=0, max=2147483648)),
+        'limit': All(int, In((25, 50, 100))),
+        'include_read': BoolGET,
+    }
+)
 
 
 @bp.route('/notifications/<type>', methods=['GET'])
 @require_permission(NotificationPermissions.VIEW)
 @validate_data(VIEW_NOTIFICATION_SCHEMA)
 @access_other_user(NotificationPermissions.VIEW_OTHERS)
-def view_notification_type(type: str,
-                           user: User,
-                           page: int = 1,
-                           limit: int = 50,
-                           include_read: bool = False):
+def view_notification_type(
+    type: str,
+    user: User,
+    page: int = 1,
+    limit: int = 50,
+    include_read: bool = False,
+):
     """
     View all pending notifications of a specific type. Requires the
     ``notifications_view`` permission. Viewing the notifications of
@@ -102,12 +106,12 @@ def view_notification_type(type: str,
     :statuscode 400: Notification type is invalid.
     :statuscode 403: User does not have access to view notifications.
     """
-    return flask.jsonify(Notification.from_type(user.id, type, include_read=include_read))
+    return flask.jsonify(
+        Notification.from_type(user.id, type, include_read=include_read)
+    )
 
 
-MODIFY_NOTIFICATION_SCHEMA = Schema({
-    'read': bool,
-    }, required=True)
+MODIFY_NOTIFICATION_SCHEMA = Schema({'read': bool}, required=True)
 
 
 @bp.route('/notifications', methods=['PUT'])
@@ -115,9 +119,7 @@ MODIFY_NOTIFICATION_SCHEMA = Schema({
 @require_permission(NotificationPermissions.MODIFY)
 @validate_data(MODIFY_NOTIFICATION_SCHEMA)
 @access_other_user(NotificationPermissions.MODIFY_OTHERS)
-def clear_notifications(read: bool,
-                        user: User,
-                        type: str = None):
+def clear_notifications(read: bool, user: User, type: str = None):
     """
     Clear a user's notifications; optionally of a specific type. Requires the
     ``notifications_modify`` permission. Clearing another user's notifications
@@ -143,9 +145,12 @@ def clear_notifications(read: bool,
         raise APIException('You cannot set all notifications to unread.')
     Notification.update_many(
         pks=Notification.get_pks_from_type(user.id, type, include_read=False),
-        update={'read': True})
+        update={'read': True},
+    )
     Notification.clear_cache_keys(user.id)
-    return flask.jsonify(f'{"All" if not type else type} notifications cleared.')
+    return flask.jsonify(
+        f'{"All" if not type else type} notifications cleared.'
+    )
 
 
 @bp.route('/notifications/<int:id>', methods=['PUT'])
@@ -174,8 +179,12 @@ def modify_notification(id: int, read: bool):
     :statuscode 403: User does not have permission to modify notifications.
     :statuscode 404: Notification does not exist.
     """
-    noti = Notification.from_pk(id, asrt=NotificationPermissions.MODIFY_OTHERS, error=True)
+    noti = Notification.from_pk(
+        id, asrt=NotificationPermissions.MODIFY_OTHERS, error=True
+    )
     noti.read = read
     db.session.commit()
     Notification.clear_cache_keys(noti.user_id, noti.type)
-    return flask.jsonify(f'Notification {id} marked as {"read" if read else "unread"}.')
+    return flask.jsonify(
+        f'Notification {id} marked as {"read" if read else "unread"}.'
+    )

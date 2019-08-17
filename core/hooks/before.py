@@ -40,7 +40,10 @@ def check_api_key() -> None:
         api_key = APIKey.from_pk(raw_key[:10])  # Implied active_only
         if api_key and api_key.check_key(raw_key[10:]) and not api_key.revoked:
             if not api_key.permanent:
-                time_since = datetime.utcnow().replace(tzinfo=pytz.utc) - api_key.last_used
+                time_since = (
+                    datetime.utcnow().replace(tzinfo=pytz.utc)
+                    - api_key.last_used
+                )
                 if time_since.total_seconds() > api_key.timeout:
                     api_key.revoked = True
                     db.session.commit()
@@ -62,16 +65,20 @@ def update_api_key(api_key: APIKey) -> None:
     :param session_key: The session or API key to update
     """
     cache_key = f'{api_key.cache_key}_updated'
-    if (not cache.get(cache_key)
-            or api_key.ip != flask.request.remote_addr
-            or api_key.user_agent != flask.request.headers.get('User-Agent')):
+    if (
+        not cache.get(cache_key)
+        or api_key.ip != flask.request.remote_addr
+        or api_key.user_agent != flask.request.headers.get('User-Agent')
+    ):
         api_key.last_used = datetime.utcnow().replace(tzinfo=pytz.utc)
         api_key.user_agent = flask.request.headers.get('User-Agent')
         api_key.ip = flask.request.remote_addr
         db.session.commit()
 
         cache.delete(api_key.cache_key)
-        cache.set(cache_key, 1, timeout=60 * 2)  # 2 minute wait before next update
+        cache.set(
+            cache_key, 1, timeout=60 * 2
+        )  # 2 minute wait before next update
 
 
 def parse_key(headers) -> Optional[str]:
@@ -107,18 +114,22 @@ def check_rate_limit() -> None:
     key_cache_key = f'rate_limit_api_key_{flask.g.api_key.hash}'
 
     auth_specific_requests = cache.inc(
-        key_cache_key, timeout=app.config['RATE_LIMIT_AUTH_SPECIFIC'][1])
+        key_cache_key, timeout=app.config['RATE_LIMIT_AUTH_SPECIFIC'][1]
+    )
     if auth_specific_requests > app.config['RATE_LIMIT_AUTH_SPECIFIC'][0]:
         time_left = cache.ttl(key_cache_key)
         raise APIException(
-            f'Client rate limit exceeded. {time_left} seconds until lock expires.')
+            f'Client rate limit exceeded. {time_left} seconds until lock expires.'
+        )
 
     user_specific_requests = cache.inc(
-        user_cache_key, timeout=app.config['RATE_LIMIT_PER_USER'][1])
+        user_cache_key, timeout=app.config['RATE_LIMIT_PER_USER'][1]
+    )
     if user_specific_requests > app.config['RATE_LIMIT_PER_USER'][0]:
         time_left = cache.ttl(user_cache_key)
         raise APIException(
-            f'User rate limit exceeded. {time_left} seconds until lock expires.')
+            f'User rate limit exceeded. {time_left} seconds until lock expires.'
+        )
 
 
 def check_rate_limit_unauthenticated() -> None:
@@ -128,4 +139,5 @@ def check_rate_limit_unauthenticated() -> None:
     if requests > 30:
         time_left = cache.ttl(cache_key)
         raise APIException(
-            f'Unauthenticated rate limit exceeded. {time_left} seconds until lock expires.')
+            f'Unauthenticated rate limit exceeded. {time_left} seconds until lock expires.'
+        )

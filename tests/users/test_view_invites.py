@@ -2,26 +2,33 @@ import json
 
 import pytest
 
-from conftest import CODE_1, CODE_2, CODE_3, add_permissions, check_json_response
+from conftest import (
+    CODE_1,
+    CODE_2,
+    CODE_3,
+    add_permissions,
+    check_json_response,
+)
 from core import db
 from core.users.models import Invite, User
 
 
 @pytest.mark.parametrize(
-    'code, expected', [
-        (CODE_1, {
-            'expired': False,
-            'code': CODE_1,
-            'email': 'bright@puls.ar',
-            'invitee': None,
-            }),
-        (CODE_2, {
-            'expired': True,
-            'code': CODE_2,
-            'email': 'bright@quas.ar',
-            }),
-        ('abcdef', 'Invite abcdef does not exist.')
-    ])
+    'code, expected',
+    [
+        (
+            CODE_1,
+            {
+                'expired': False,
+                'code': CODE_1,
+                'email': 'bright@puls.ar',
+                'invitee': None,
+            },
+        ),
+        (CODE_2, {'expired': True, 'code': CODE_2, 'email': 'bright@quas.ar'}),
+        ('abcdef', 'Invite abcdef does not exist.'),
+    ],
+)
 def test_view_invite(app, authed_client, code, expected):
     """Viewing invites should return the invite."""
     add_permissions(app, 'invites_view')
@@ -33,12 +40,16 @@ def test_invites_view_multiple(app, authed_client):
     """Viewing the invite of a user should return a list of them."""
     add_permissions(app, 'invites_view')
     response = authed_client.get('/invites')
-    check_json_response(response, {
-        'expired': False,
-        'code': CODE_1,
-        'email': 'bright@puls.ar',
-        'invitee': None,
-        }, list_=True)
+    check_json_response(
+        response,
+        {
+            'expired': False,
+            'code': CODE_1,
+            'email': 'bright@puls.ar',
+            'invitee': None,
+        },
+        list_=True,
+    )
     assert len(response.get_json()['response']) == 1
     assert response.status_code == 200
 
@@ -46,7 +57,9 @@ def test_invites_view_multiple(app, authed_client):
 def test_invites_view_include_dead(app, authed_client):
     """Including dead torrents in the list view should return dead invites."""
     add_permissions(app, 'invites_view')
-    response = authed_client.get('/invites', query_string={'include_dead': True})
+    response = authed_client.get(
+        '/invites', query_string={'include_dead': True}
+    )
     assert len(response.get_json()['response']) == 3
     assert response.status_code == 200
 
@@ -55,11 +68,11 @@ def test_invites_view_used(app, authed_client):
     """Viewing only used invites should omit non-used invites."""
     add_permissions(app, 'invites_view')
     response = authed_client.get('/invites', query_string={'used': True})
-    check_json_response(response, {
-        'expired': True,
-        'code': CODE_2,
-        'email': 'bright@quas.ar',
-        }, list_=True)
+    check_json_response(
+        response,
+        {'expired': True, 'code': CODE_2, 'email': 'bright@quas.ar'},
+        list_=True,
+    )
     assert len(response.get_json()['response']) == 1
     assert response.status_code == 200
 
@@ -79,13 +92,14 @@ def test_invite_user_with_code(app, authed_client):
     app.config['REQUIRE_INVITE_CODE'] = True
     add_permissions(app, 'invites_send')
     response = authed_client.post(
-        '/invites', data=json.dumps({'email': 'bright@puls.ar'}),
-        content_type='application/json')
-    check_json_response(response, {
-        'expired': False,
-        'email': 'bright@puls.ar',
-        'invitee': None,
-        })
+        '/invites',
+        data=json.dumps({'email': 'bright@puls.ar'}),
+        content_type='application/json',
+    )
+    check_json_response(
+        response,
+        {'expired': False, 'email': 'bright@puls.ar', 'invitee': None},
+    )
     assert response.status_code == 200
 
     user = User.from_pk(1)
@@ -98,7 +112,9 @@ def test_invites_list_cache_clear(app, authed_client):
     add_permissions(app, 'invites_send')
     Invite.from_inviter(1)  # Cache it
 
-    authed_client.post('/invites', data=json.dumps({'email': 'bright@puls.ar'}))
+    authed_client.post(
+        '/invites', data=json.dumps({'email': 'bright@puls.ar'})
+    )
     sent_invites = Invite.from_inviter(1, include_dead=True)
     assert len(sent_invites) == 4
 
@@ -110,8 +126,10 @@ def test_user_send_but_does_not_have_invite(app, authed_client):
     db.engine.execute('UPDATE users SET invites = 0')
     db.session.commit()
     response = authed_client.post(
-        '/invites', data=json.dumps({'email': 'bright@puls.ar'}),
-        content_type='application/json')
+        '/invites',
+        data=json.dumps({'email': 'bright@puls.ar'}),
+        content_type='application/json',
+    )
     check_json_response(response, 'You do not have an invite to send.')
     assert response.status_code == 400
 
@@ -120,18 +138,25 @@ def test_invite_without_code(app, authed_client):
     """Sending an invite when open reg is on should error."""
     app.config['REQUIRE_INVITE_CODE'] = False
     add_permissions(app, 'invites_send')
-    response = authed_client.post('/invites', data=json.dumps({'email': 'bright@puls.ar'}))
-    check_json_response(response, 'An invite code is not required to register, '
-                        'so invites have been disabled.')
+    response = authed_client.post(
+        '/invites', data=json.dumps({'email': 'bright@puls.ar'})
+    )
+    check_json_response(
+        response,
+        'An invite code is not required to register, '
+        'so invites have been disabled.',
+    )
 
 
 @pytest.mark.parametrize(
-    'code, expected, invites', [
+    'code, expected, invites',
+    [
         (CODE_1, {'expired': True}, 2),
         (CODE_2, f'Invite {CODE_2} does not exist.', 1),
         (CODE_3, f'Invite {CODE_3} does not exist.', 1),
         ('abc', f'Invite abc does not exist.', 1),
-    ])
+    ],
+)
 def test_revoke_invite(app, authed_client, code, expected, invites):
     """Revoking an invite should work only for active invites."""
     add_permissions(app, 'invites_revoke')
@@ -149,7 +174,9 @@ def test_revoke_invite_others(app, authed_client):
     Reovoking another's invite with the proper permissions should work and re-add
     the invite to the inviter's invite count.
     """
-    add_permissions(app, 'invites_revoke', 'invites_revoke_others', 'invites_view_others')
+    add_permissions(
+        app, 'invites_revoke', 'invites_revoke_others', 'invites_view_others'
+    )
     response = authed_client.delete(f'/invites/{CODE_3}')
     check_json_response(response, {'expired': True})
     user = User.from_pk(2)
@@ -165,18 +192,20 @@ def test_revoke_invite_others_failure(app, authed_client):
 
 
 @pytest.mark.parametrize(
-    'endpoint, method', [
-        ('/invites', 'GET'),
-        ('/invites', 'POST'),
-    ])
+    'endpoint, method', [('/invites', 'GET'), ('/invites', 'POST')]
+)
 def test_route_permissions(authed_client, endpoint, method):
     """Make sure all routes are properly permissioned against the unpermissioned user."""
     response = authed_client.open(endpoint, method=method)
-    check_json_response(response, 'You do not have permission to access this resource.')
+    check_json_response(
+        response, 'You do not have permission to access this resource.'
+    )
     assert response.status_code == 403
 
 
 def test_view_invite_route_permission(app, authed_client):
     response = authed_client.get('/invites', query_string={'code': CODE_1})
-    check_json_response(response, 'You do not have permission to access this resource.')
+    check_json_response(
+        response, 'You do not have permission to access this resource.'
+    )
     assert response.status_code == 403

@@ -19,98 +19,147 @@ class Notification(db.Model, SinglePKMixin):
     __serializer__ = NotificationSerializer
     __cache_key__ = 'notifications_{id}'
     __cache_key_of_user__ = 'notifications_user_{user_id}_{type}'
-    __cache_key_notification_count__ = 'notifications_user_{user_id}_{type}_count'
+    __cache_key_notification_count__ = (
+        'notifications_user_{user_id}_{type}_count'
+    )
     __deletion_attr__ = 'read'
 
     id: int = db.Column(db.Integer, primary_key=True)
-    user_id: int = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    user_id: int = db.Column(
+        db.Integer, db.ForeignKey('users.id'), nullable=False, index=True
+    )
     type_id: int = db.Column(
-        db.Integer, db.ForeignKey('notifications_types.id'), nullable=False, index=True)
+        db.Integer,
+        db.ForeignKey('notifications_types.id'),
+        nullable=False,
+        index=True,
+    )
     time: datetime = db.Column(
-        db.DateTime(timezone=True), nullable=False, server_default=func.now())
+        db.DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     contents: str = db.Column(JSONB, nullable=False)
-    read: bool = db.Column(db.Boolean, nullable=False, server_default='f', index=True)
+    read: bool = db.Column(
+        db.Boolean, nullable=False, server_default='f', index=True
+    )
 
     @property
     def type(self):
         return NotificationType.from_pk(self.type_id).type
 
     @classmethod
-    def new(cls,
-            user_id: int,
-            type: str,
-            contents: Dict[str, Union[Dict, str]]) -> 'Notification':
+    def new(
+        cls, user_id: int, type: str, contents: Dict[str, Union[Dict, str]]
+    ) -> 'Notification':
         User.is_valid(user_id, error=True)
         noti_type = NotificationType.from_type(type, create_new=True)
-        cache.delete(cls.__cache_key_of_user__.format(user_id=user_id, type=type))
-        cache.delete(cls.__cache_key_notification_count__.format(user_id=user_id, type=type))
+        cache.delete(
+            cls.__cache_key_of_user__.format(user_id=user_id, type=type)
+        )
+        cache.delete(
+            cls.__cache_key_notification_count__.format(
+                user_id=user_id, type=type
+            )
+        )
         return super()._new(
-            user_id=user_id,
-            type_id=noti_type.id,
-            contents=contents)
+            user_id=user_id, type_id=noti_type.id, contents=contents
+        )
 
     @classmethod
-    def get_all_unread(cls,
-                       user_id: int,
-                       limit: int = 25) -> Dict[str, List['Notification']]:
-        return {t.type: cls.get_many(
-            key=cls.__cache_key_of_user__.format(user_id=user_id, type=t.id),
-            filter=and_(cls.user_id == user_id, cls.type_id == t.id),
-            limit=limit) for t in NotificationType.get_all()}
+    def get_all_unread(
+        cls, user_id: int, limit: int = 25
+    ) -> Dict[str, List['Notification']]:
+        return {
+            t.type: cls.get_many(
+                key=cls.__cache_key_of_user__.format(
+                    user_id=user_id, type=t.id
+                ),
+                filter=and_(cls.user_id == user_id, cls.type_id == t.id),
+                limit=limit,
+            )
+            for t in NotificationType.get_all()
+        }
 
     @classmethod
-    def from_type(cls,
-                  user_id: int,
-                  type: str,
-                  page: int = 1,
-                  limit: int = 50,
-                  include_read: bool = False) -> List['Notification']:
+    def from_type(
+        cls,
+        user_id: int,
+        type: str,
+        page: int = 1,
+        limit: int = 50,
+        include_read: bool = False,
+    ) -> List['Notification']:
         noti_type = NotificationType.from_type(type, error=True)
         return cls.get_many(
-            key=cls.__cache_key_of_user__.format(user_id=user_id, type=noti_type.id),
+            key=cls.__cache_key_of_user__.format(
+                user_id=user_id, type=noti_type.id
+            ),
             filter=and_(cls.user_id == user_id, cls.type_id == noti_type.id),
             page=page,
             limit=limit,
-            include_dead=include_read)
+            include_dead=include_read,
+        )
 
     @classmethod
-    def get_pks_from_type(cls,
-                          user_id: int,
-                          type: str,
-                          include_read: bool = False):
+    def get_pks_from_type(
+        cls, user_id: int, type: str, include_read: bool = False
+    ):
         noti_type = NotificationType.from_type(type)
         if type:
             filter = and_(cls.user_id == user_id, cls.type_id == noti_type.id)
-            cache_key = cls.__cache_key_of_user__.format(user_id=user_id, type=noti_type.id)
+            cache_key = cls.__cache_key_of_user__.format(
+                user_id=user_id, type=noti_type.id
+            )
         else:
             filter = cls.user_id == user_id
-            cache_key = cls.__cache_key_of_user__.format(user_id=user_id, type='all')
+            cache_key = cls.__cache_key_of_user__.format(
+                user_id=user_id, type='all'
+            )
 
         return cls.get_pks_of_many(
-            key=cache_key,
-            filter=filter,
-            include_dead=include_read)
+            key=cache_key, filter=filter, include_dead=include_read
+        )
 
     @classmethod
     def get_notification_counts(cls, user_id: int) -> Dict[str, int]:
-        return {t.type: cls.count(
-            key=cls.__cache_key_notification_count__.format(user_id=user_id, type=t),
-            attribute=cls.id,
-            filter=and_(
-                cls.user_id == user_id,
-                cls.type_id == t.id,
-                cls.read == 'f'
-                )) for t in NotificationType.get_all()}
+        return {
+            t.type: cls.count(
+                key=cls.__cache_key_notification_count__.format(
+                    user_id=user_id, type=t
+                ),
+                attribute=cls.id,
+                filter=and_(
+                    cls.user_id == user_id,
+                    cls.type_id == t.id,
+                    cls.read == 'f',
+                ),
+            )
+            for t in NotificationType.get_all()
+        }
 
     @classmethod
     def clear_cache_keys(cls, user_id: int, type=None) -> None:
         types = (
             [NotificationType.from_type(type, error=True)]
-            if type else NotificationType.get_all())
-        cache.delete_many(*chain(*chain([(
-            cls.__cache_key_notification_count__.format(user_id=user_id, type=t.id),
-            cls.__cache_key_of_user__.format(user_id=user_id, type=t.id)
-            ) for t in types])))
+            if type
+            else NotificationType.get_all()
+        )
+        cache.delete_many(
+            *chain(
+                *chain(
+                    [
+                        (
+                            cls.__cache_key_notification_count__.format(
+                                user_id=user_id, type=t.id
+                            ),
+                            cls.__cache_key_of_user__.format(
+                                user_id=user_id, type=t.id
+                            ),
+                        )
+                        for t in types
+                    ]
+                )
+            )
+        )
 
 
 class NotificationType(db.Model, SinglePKMixin):
@@ -123,11 +172,9 @@ class NotificationType(db.Model, SinglePKMixin):
     type: str = db.Column(db.String, nullable=False, unique=True, index=True)
 
     @classmethod
-    def from_type(cls,
-                  type: str,
-                  *,
-                  create_new: bool = False,
-                  error: bool = False) -> 'NotificationType':
+    def from_type(
+        cls, type: str, *, create_new: bool = False, error: bool = False
+    ) -> 'NotificationType':
         """
         Get the ID of the notification type, and if the type is not in the database,
         add it and return the new ID.
@@ -141,7 +188,8 @@ class NotificationType(db.Model, SinglePKMixin):
         """
         noti_type = cls.from_query(
             key=cls.__cache_key_id_of_type__.format(type=type),
-            filter=cls.type == type)
+            filter=cls.type == type,
+        )
         if noti_type:
             return noti_type
         elif create_new:
@@ -157,4 +205,6 @@ class NotificationType(db.Model, SinglePKMixin):
 
         :return: All notification type objects
         """
-        return cls.get_many(key=cls.__cache_key_all__, order=cls.id, limit=None)
+        return cls.get_many(
+            key=cls.__cache_key_all__, order=cls.id, limit=None
+        )
